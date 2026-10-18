@@ -1,12 +1,14 @@
-"""MANARA Mold Factory (G04).
+"""MANARA Mold Factory (G04 + G04-R1).
 
 Public API:
-* :class:`MoldArchitect` — composes temporary molds from existing capabilities
+* :class:`MoldArchitect` — composes temporary molds with three-tier coverage
+* :class:`CoverageLevel` — enum: NONE | CATALOG | OPERATIONAL | VERIFIED
 * :class:`UnknownDomainDetector` — detects whether a domain has an existing mold
 * :class:`InvestigationWorkflowService` — enforces the G00 state machine
 """
 
 from manara.mold_factory.architect import (
+    CoverageLevel,
     GapRecord,
     MoldArchitect,
     MoldCompositionResult,
@@ -20,6 +22,7 @@ from manara.mold_factory.workflow import (
 )
 
 __all__ = [
+    "CoverageLevel",
     "DetectionResult",
     "GapRecord",
     "InvestigationWorkflowService",

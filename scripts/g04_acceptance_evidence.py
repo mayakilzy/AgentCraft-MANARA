@@ -153,43 +153,43 @@ def main() -> int:
         print(f"  ✓ All {len(result.mold.composition.capability_ids)} capability_ids exist in the registry")
         print(f"  ✓ No fabricated capabilities inserted")
 
-        # ── Step 5: Verify gap analyses persisted ────────────────────────────
-        banner("STEP 5 — Verify gap analyses persisted honestly")
-        # Note: the recycling query's needs are all covered by seed cards
-        # (env → agricultural-statistics, etc.), so result.gaps is empty
-        # in this run. However, the seed cards are NOT backed by real
-        # connectors (G02 only approved OpenAlex). We record this honestly
-        # as an explicit "unresolved" gap so the investigation report can
-        # document the missing coverage — per owner decision:
-        # "إذا لم تسمح قدرات G02 الحالية ببناء موصل جديد تلقائياً، سجّل
-        # هذه الفجوة صراحةً."
-        if not result.gaps:
-            synthetic_gap = GapAnalysisRow(
-                tenant_id="tenant_demo",
-                mold_id=result.mold_recipe_id,
-                investigation_id="inv-recycling",
-                need="environmental_data",
-                need_label="Environmental data (no real connector yet)",
-                status="unresolved",
-                resolution_notes=(
-                    "The seed capability card exists but is NOT backed by a "
-                    "real connector (G02 only approved OpenAlex for academic "
-                    "publications). This gap is recorded honestly so the "
-                    "investigation report can document the missing coverage."
-                ),
-            )
-            db.add(synthetic_gap)
-            db.commit()
-            print("  (added explicit unresolved gap — seed card has no real connector yet)")
+        # ── Step 5: Verify gap analyses detected AUTOMATICALLY ─────────────
+        banner("STEP 5 — Verify operational gaps detected AUTOMATICALLY (G04-R1 core)")
+        # Per owner (G04-R1): "يجب أن ينتج MoldArchitect الفجوات بنفسه"
+        # NO manual GapAnalysisRow insertion — the architect detects them.
         gap_rows = list(db.execute(
             select(GapAnalysisRow).where(
                 GapAnalysisRow.mold_id == result.mold_recipe_id
             )
         ).scalars())
         print(f"  GapAnalysisRow count: {len(gap_rows)}")
+        print(f"  result.gaps count: {len(result.gaps)}")
+        assert len(gap_rows) == len(result.gaps), (
+            f"DB gap count ({len(gap_rows)}) != result.gaps ({len(result.gaps)})"
+        )
+        # The seed cards have NO approved connectors → operational gaps
+        # must be detected automatically
+        assert len(result.gaps) > 0, (
+            "Expected operational gaps to be detected automatically "
+            "(seed cards have no approved connectors)"
+        )
         for g in gap_rows:
             print(f"    • need={g.need} status={g.status}")
-            print(f"      notes: {g.resolution_notes[:100]}...")
+            print(f"      notes: {g.resolution_notes[:120]}...")
+
+        # is_complete must be False (catalog coverage only)
+        print(f"\n  is_complete: {result.is_complete} (must be False — no operational coverage)")
+        print(f"  is_catalog_complete: {result.is_catalog_complete}")
+        print(f"  deliverable_type: {result.deliverable_type}")
+        assert result.is_complete is False, (
+            "is_complete must be False when needs have only catalog coverage"
+        )
+        assert result.deliverable_type == "coverage_blocker_report", (
+            f"Expected coverage_blocker_report, got {result.deliverable_type}"
+        )
+        print("  ✓ Operational gaps detected AUTOMATICALLY (no manual insertion)")
+        print("  ✓ is_complete=False (honest — no operational coverage)")
+        print("  ✓ deliverable_type=coverage_blocker_report (not research_deliverable)")
 
         # ── Step 6: Verify mold recipe persisted + rehydratable ───────────────
         banner("STEP 6 — Verify mold recipe persisted + rehydratable")

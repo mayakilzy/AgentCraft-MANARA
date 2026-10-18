@@ -289,21 +289,27 @@ class InvestigationWorkflowService:
 
         elif target == InvestigationState.EVIDENCING:
             # At least one evidence item should exist OR a gap analysis
-            # marked "unresolved" (so the investigation explicitly
-            # documents that no evidence could be acquired).
+            # (operational_gap, unresolved, foundry_invoked, etc.) that
+            # documents why evidence couldn't be acquired.
+            # Per owner (G04-R1): "التحقيق الذي يفتقر إلى الأدلة الكافية
+            # يجب أن يستطيع إصدار تقرير عن فجوة المعرفة، بدلاً من اختراع نتيجة."
             ev_count = self._count_evidence(
                 investigation_id=row.investigation_id, tenant_id=tenant_id
             )
             if ev_count == 0:
+                # Check for ANY gap analysis (not just "unresolved") —
+                # operational_gap also counts because it documents that
+                # the capability exists but can't execute.
                 gap_count = self._count_gap_analyses(
                     investigation_id=row.investigation_id, tenant_id=tenant_id,
-                    status_filter="unresolved",
                 )
                 if gap_count == 0:
                     return (
                         "cannot enter evidencing: no evidence collected AND "
-                        "no unresolved gap recorded. Either acquire evidence "
-                        "OR explicitly record that the source is unavailable."
+                        "no gap analysis recorded. Either acquire evidence "
+                        "OR run the MoldArchitect (which records operational "
+                        "gaps automatically when capabilities lack approved "
+                        "connectors)."
                     )
 
         elif target == InvestigationState.VERIFICATION:
@@ -313,8 +319,15 @@ class InvestigationWorkflowService:
             pass  # no strict precondition
 
         elif target == InvestigationState.DELIVERABLE_READY:
+            # Per owner (G04-R1):
+            # > "ميز بين:
+            # > - Research Deliverable Ready: التحقيق مكتمل بأدلة كافية.
+            # > - Coverage/Blocker Report Ready: تقرير يوضح نقص البيانات أو تعذر التنفيذ.
+            # > لا تعتبر الثانية إنجازاً للبحث الأول."
+            #
             # The investigation must EITHER have evidence-backed claims
-            # OR be explicitly labeled as a "coverage gaps" report.
+            # (research deliverable) OR be explicitly a coverage/blocker
+            # report (gaps recorded, no fabrication).
             ev_count = self._count_evidence(
                 investigation_id=row.investigation_id, tenant_id=tenant_id
             )
@@ -324,9 +337,16 @@ class InvestigationWorkflowService:
             if ev_count == 0 and gap_count == 0:
                 return (
                     "cannot enter deliverable_ready: no evidence AND no gaps "
-                    "recorded. The report must either be evidence-backed OR "
-                    "explicitly labeled as a 'coverage gaps' report."
+                    "recorded. The report must either be evidence-backed "
+                    "(research_deliverable) OR explicitly labeled as a "
+                    "'coverage/blocker report' (gaps recorded)."
                 )
+            # Note: we allow the transition if EITHER evidence OR gaps exist.
+            # The caller (API or agent) determines the deliverable_type:
+            #   - evidence present → research_deliverable
+            #   - gaps only → coverage_blocker_report
+            # The mold's deliverable_type field (set by MoldArchitect) tells
+            # the caller which type is appropriate.
 
         elif target == InvestigationState.ARCHIVED:
             # No pre-conditions — any state can transition to archived
