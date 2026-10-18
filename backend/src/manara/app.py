@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from manara.api.errors import register_error_handlers
 from manara.api.routes import (
+    agents,
     contracts,
     discovery,
     foundry,
@@ -74,6 +75,7 @@ def create_app() -> FastAPI:
     app.include_router(foundry.router)
     app.include_router(memory.router)
     app.include_router(mold_factory.router)
+    app.include_router(agents.router)
 
     @app.get("/", include_in_schema=False)
     def root() -> dict[str, str]:

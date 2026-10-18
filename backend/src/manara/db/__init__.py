@@ -1,5 +1,10 @@
 """Database layer."""
 
+from manara.db.agent_models import (
+    AgentEvaluationRow,
+    AgentRecipeRow,
+    AgentSessionRow,
+)
 from manara.db.memory_models import (
     ClaimRow,
     ClaimSupportEdgeRow,
@@ -38,6 +43,9 @@ from manara.db.session import (
 )
 
 __all__ = [
+    "AgentEvaluationRow",
+    "AgentRecipeRow",
+    "AgentSessionRow",
     "ApprovalRow",
     "Base",
     "CapabilityEmbeddingRow",

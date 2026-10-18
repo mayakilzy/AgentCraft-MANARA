@@ -90,13 +90,21 @@ class StatusResponse(BaseModel):
             "mold_factory:mold_recipe_persistence_and_reuse",
             "mold_factory:investigation_workflow_state_machine",
             "mold_factory:owner_approved_mold_promotion",
-            "mold_factory:blocker_visibility_for_failed_transitions",
+            # G05 — on-demand specialist agents
+            "agents:generalist_vs_specialist_resolver",
+            "agents:agent_recipe_registry_phone_book",
+            "agents:ephemeral_runtime_instantiate_execute_terminate",
+            "agents:tool_permission_resolver_intersection",
+            "agents:mock_provider_for_testing",
+            "agents:zai_provider_stub_for_production",
+            "agents:clinical_prosthetics_reviewer_recipe",
+            "agents:general_analyst_recipe",
+            "agents:evaluation_and_recipe_promotion",
         ],
-        description="Exhaustive list of G00 + G01 + G01-R1 + G02 + G03 + G04 capabilities actually delivered.",
+        description="Exhaustive list of G00 + G01 + G01-R1 + G02 + G03 + G04 + G04-R1 + G05 capabilities actually delivered.",
     )
     not_implemented: list[str] = Field(
         default_factory=lambda: [
-            "on_demand_specialist_agents",  # G05
             "real_forecasting",             # G06
             "real_publishing",              # G07
             "full_ux_integration",          # G08
@@ -108,7 +116,8 @@ class StatusResponse(BaseModel):
             "live_search_verified",         # only single-work GET verified; search blocked by rate limit
             "memory_vector_search",        # future: pgvector-backed semantic retrieval over evidence
             "foundry_auto_connector_generation",  # G04 records gaps; auto-build is G05+ territory
-            "agent_recipe_persistence",    # G05
+            "live_llm_execution",         # mock provider only; Z.AI requires API key
+            "live_clinical_assessment",   # mock responses; not a real clinical evaluation
         ],
         description="Honestly NOT done yet. Deferred to later missions per ROADMAP.",
     )
