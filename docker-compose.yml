@@ -1,0 +1,58 @@
+# MANARA — Docker Compose (DEVELOPMENT ONLY)
+#
+# ⚠️  NOT TESTED IN THIS G00 SANDBOX — Docker is unavailable here.
+#     This file is provided for environments where Docker IS available.
+#     Run `docker compose up` from a Docker-enabled machine.
+#     See docs/AADS_BLOCKER.md for the sandbox limitation report.
+#
+# Production deployment is OUT OF SCOPE for G00.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: manara
+      POSTGRES_PASSWORD: CHANGE_ME_IN_DEV_ONLY
+      POSTGRES_DB: manara
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U manara -d manara"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      MANARA_ENV: development
+      DATABASE_URL: postgresql+psycopg://manara:CHANGE_ME_IN_DEV_ONLY@postgres:5432/manara
+      MANARA_DISCOVERY_MODE: synthetic
+      MANARA_SINGLE_TENANT_DEMO: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "
+        alembic upgrade head &&
+        uvicorn manara.app:create_app --factory --host 0.0.0.0 --port 8000 --reload
+      "
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    command: npm run dev -- --host 0.0.0.0
+
+volumes:
+  pgdata:

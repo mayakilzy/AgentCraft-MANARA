@@ -1,0 +1,17 @@
+MANARA — Adaptive Intelligence Factory
+
+Copyright (c) 2026 MANARA Project (Owner: Ayman)
+
+SPDX-License-Identifier: TBD
+
+The owner has not yet selected a final license for this repository. The
+foundation scaffold in this G00 commit is provided as source-available code
+for review by the MANARA team (Owner: Ayman; Supervisor: ChatGPT;
+Implementer: GLM). Until a license is chosen, no rights are granted beyond
+what is necessary for the team to review and test the code in private.
+
+Once the owner selects a license, this file will be replaced by the
+canonical LICENSE text (e.g. MIT, Apache-2.0, or a custom license).
+
+Third-party dependencies retain their original licenses (see
+docs/LICENSES.md).
