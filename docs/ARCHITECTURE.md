@@ -121,3 +121,65 @@ Per `START-HERE.md` "Do not prematurely perform":
 
 G01 implementation map: see `G01_IMPLEMENTATION_MAP.md`.
 AADS v1.2 blocker: see `AADS_BLOCKER.md`.
+
+---
+
+## G01 — Capability Registry (added 2026-10-19)
+
+### New layer
+```
+backend/src/manara/
+├── registry/                   # NEW (G01)
+│   ├── __init__.py
+│   ├── embeddings.py           # Embedder + NumpyEmbeddingStore + PgvectorEmbeddingStore
+│   ├── converters.py           # Pydantic ↔ ORM conversion
+│   ├── service.py              # CapabilityRegistry — the 5-stage retrieval pipeline
+│   └── seed_cards.py           # 8 high-quality seed capability cards
+├── db/
+│   ├── models.py               # G00: InvestigationRow
+│   └── registry_models.py     # NEW (G01): 7 ORM models for the registry
+└── api/routes/
+    ├── status.py               # G00 (+ G01 capability list)
+    ├── discovery.py            # G00
+    ├── contracts.py            # G00
+    └── registry.py             # NEW (G01): 12 endpoints
+```
+
+### Retrieval pipeline (per `01_ARCHITECTURE/02_CONTRACTS.md` §Retrieval strategy)
+
+| Stage | Purpose | Implementation |
+|-------|---------|----------------|
+| 1_filter | tenant + status + domain/tag/language filters | SQLAlchemy query |
+| 2_hybrid | text similarity (token overlap, multilingual) + semantic similarity (MiniLM cosine) | numpy + EmbeddingStore |
+| 3_rerank | positive-example boost + negative-example penalty | EmbeddingStore search by kind |
+| 4_validate | ensure status is searchable | done in stage 1 |
+| 5_return | top-k with reasons + gap analysis | list slice + gap notes |
+
+### Embedding model
+
+* **Model**: `paraphrase-multilingual-MiniLM-L12-v2`
+* **Dimension**: 384
+* **Multilingual**: handles Arabic + English queries symmetrically
+* **Production store**: PostgreSQL + pgvector (ivfflat index, cosine ops)
+* **Dev/test store**: SQLite + JSON column + numpy cosine (identical algorithm)
+* **Pinned metadata**: every embedding row stores `model_name`, `model_version`, `embedding_dim` — so future model swaps can detect and re-encode stale vectors
+
+### Eight seed capability cards
+
+| Card ID | Domain coverage |
+|---------|-----------------|
+| search.academic-publications | academic, research, science |
+| search.patent-intelligence | industry, batteries, medicine, robotics, construction |
+| search.clinical-trials | medicine, health, biomedical, regulatory |
+| search.energy-ev-datasets | energy, automotive, manufacturing, supply-chain |
+| search.agricultural-statistics | agriculture, food, climate, trade |
+| search.geopolitical-events | geopolitics, events, media, conflict |
+| search.waste-recycling-statistics | waste, recycling, environment, policy |
+| search.github-activity | technology, open-source, ai, software |
+
+All 8 cards ship with:
+* 15–30 positive examples (per spec requirement)
+* 3+ mandatory negative examples (per spec requirement)
+* Multilingual keywords (ar + en)
+* Status = `candidate` (NOT approved; owner-promotion required)
+* Empty `connector_ids` (real connectors arrive in G02)

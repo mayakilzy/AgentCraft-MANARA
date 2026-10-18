@@ -244,3 +244,26 @@ a {
   font-family: var(--font-mono);
   font-size: 13px;
 }
+
+/* G01 — Registry browser */
+.action-btn {
+  padding: 6px 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.action-btn:hover {
+  border-color: var(--accent);
+  background: rgba(78, 201, 176, 0.08);
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

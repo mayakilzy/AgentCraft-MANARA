@@ -36,6 +36,7 @@ class StatusResponse(BaseModel):
     build: dict[str, str] = Field(default=BUILD_INFO)
     capabilities: list[str] = Field(
         default_factory=lambda: [
+            # G00 — foundation
             "typed_contracts:source",
             "typed_contracts:connector",
             "typed_contracts:search_capability",
@@ -49,21 +50,36 @@ class StatusResponse(BaseModel):
             "api:contracts_schemas",
             "api:errors_envelope",
             "persistence:investigation_row_sqlite_dev_variant",
+            # G01 — capability registry
+            "registry:capability_crud",
+            "registry:hybrid_search_text_plus_semantic",
+            "registry:miniLM_embeddings_384_multilingual",
+            "registry:negative_example_reranker",
+            "registry:owner_approved_promotion",
+            "registry:graph_relationships",
+            "registry:evaluation_history",
+            "registry:embedding_reindex",
+            "registry:8_seed_capability_cards",
         ],
-        description="Exhaustive list of G00 capabilities. NOT a marketing list.",
+        description="Exhaustive list of G00 + G01 capabilities actually delivered.",
     )
     not_implemented: list[str] = Field(
         default_factory=lambda: [
-            "real_source_discovery",
-            "real_connector_execution",
-            "real_search",
-            "real_evidence_collection",
-            "real_forecasting",
-            "real_publishing",
-            "multi_tenant_authn",
+            "real_source_discovery",        # G02
+            "real_connector_execution",     # G02
+            "real_search",                  # G02 (sandboxed)
+            "real_evidence_collection",     # G03
+            "cumulative_knowledge_memory",  # G03
+            "mold_factory",                 # G04
+            "on_demand_specialist_agents",  # G05
+            "real_forecasting",             # G06
+            "real_publishing",              # G07
+            "full_ux_integration",          # G08
+            "production_deployment",        # G09
+            "multi_tenant_authn",          # G03
             "object_storage",
-            "pgvector_semantic_search",
-            "production_deployment",
+            "pgvector_index_ivfflat",       # present in code, NOT exercised (no Postgres in sandbox)
+            "real_e2e_pilot_investigation",
         ],
         description="Honestly NOT done yet. Deferred to later missions per ROADMAP.",
     )
