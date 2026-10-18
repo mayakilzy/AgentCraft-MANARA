@@ -83,12 +83,19 @@ class StatusResponse(BaseModel):
             "memory:tenant_isolation_per_row",
             "memory:object_store_local_fs_dev",
             "memory:object_store_s3_compatible_prod_target",
+            # G04 — adaptive mold factory
+            "mold_factory:unknown_domain_detector",
+            "mold_factory:mold_architect",
+            "mold_factory:gap_analysis_honest_no_fabrication",
+            "mold_factory:mold_recipe_persistence_and_reuse",
+            "mold_factory:investigation_workflow_state_machine",
+            "mold_factory:owner_approved_mold_promotion",
+            "mold_factory:blocker_visibility_for_failed_transitions",
         ],
-        description="Exhaustive list of G00 + G01 + G01-R1 + G02 + G03 capabilities actually delivered.",
+        description="Exhaustive list of G00 + G01 + G01-R1 + G02 + G03 + G04 capabilities actually delivered.",
     )
     not_implemented: list[str] = Field(
         default_factory=lambda: [
-            "mold_factory",                 # G04
             "on_demand_specialist_agents",  # G05
             "real_forecasting",             # G06
             "real_publishing",              # G07
@@ -100,6 +107,8 @@ class StatusResponse(BaseModel):
             "additional_real_connectors",  # G02 only ships OpenAlex; Crossref + arXiv candidates pending
             "live_search_verified",         # only single-work GET verified; search blocked by rate limit
             "memory_vector_search",        # future: pgvector-backed semantic retrieval over evidence
+            "foundry_auto_connector_generation",  # G04 records gaps; auto-build is G05+ territory
+            "agent_recipe_persistence",    # G05
         ],
         description="Honestly NOT done yet. Deferred to later missions per ROADMAP.",
     )

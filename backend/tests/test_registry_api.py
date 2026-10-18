@@ -220,8 +220,12 @@ def test_status_reports_g01_capabilities(client: TestClient) -> None:
     assert "memory:evidence_ingestion_dedup_aware" in caps
     assert "memory:contradiction_preservation" in caps
     assert "memory:bitemporal_provenance_no_future_leakage" in caps
-    # G04+ items must remain in not_implemented
+    # G04 Mold Factory capabilities
+    assert "mold_factory:unknown_domain_detector" in caps
+    assert "mold_factory:mold_architect" in caps
+    assert "mold_factory:gap_analysis_honest_no_fabrication" in caps
+    # G05+ items must remain in not_implemented
     not_impl = body["not_implemented"]
-    assert "mold_factory" in not_impl  # G04
+    assert "on_demand_specialist_agents" in not_impl  # G05
     assert "real_forecasting" in not_impl  # G06
     assert "multi_tenant_authn" in not_impl  # G03+

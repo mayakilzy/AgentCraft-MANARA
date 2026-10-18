@@ -13,6 +13,12 @@ from manara.db.memory_models import (
     SourceSnapshotRow,
 )
 from manara.db.models import InvestigationRow
+from manara.db.mold_models import (
+    GapAnalysisRow,
+    InvestigationWorkflowRow,
+    MoldRecipeRow,
+    MoldReuseRow,
+)
 from manara.db.registry_models import (
     ApprovalRow,
     CapabilityEmbeddingRow,
@@ -44,11 +50,15 @@ __all__ = [
     "EntityRelationRow",
     "EntityRow",
     "EvidenceItemRow",
+    "GapAnalysisRow",
     "HypothesisRow",
     "InvestigationReuseRow",
     "InvestigationRow",
+    "InvestigationWorkflowRow",
     "MeasureRow",
     "MemoryDecisionRow",
+    "MoldRecipeRow",
+    "MoldReuseRow",
     "SourceRow",
     "SourceSnapshotRow",
     "get_db",
