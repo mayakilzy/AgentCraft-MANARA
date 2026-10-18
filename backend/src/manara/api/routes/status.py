@@ -72,23 +72,34 @@ class StatusResponse(BaseModel):
             "foundry:sandbox_test_pipeline",
             "foundry:owner_approved_promotion",
             "foundry:quarantine_path",
+            # G03 — cumulative knowledge memory
+            "memory:evidence_ingestion_dedup_aware",
+            "memory:claim_supports_refutes_qualifies_edges",
+            "memory:contradiction_preservation",
+            "memory:bitemporal_provenance_no_future_leakage",
+            "memory:verdict_promotion_audit_log",
+            "memory:investigation_reuse_search",
+            "memory:source_snapshots_content_addressed",
+            "memory:tenant_isolation_per_row",
+            "memory:object_store_local_fs_dev",
+            "memory:object_store_s3_compatible_prod_target",
         ],
-        description="Exhaustive list of G00 + G01 + G01-R1 + G02 capabilities actually delivered.",
+        description="Exhaustive list of G00 + G01 + G01-R1 + G02 + G03 capabilities actually delivered.",
     )
     not_implemented: list[str] = Field(
         default_factory=lambda: [
-            "real_evidence_collection",     # G03
-            "cumulative_knowledge_memory",  # G03
             "mold_factory",                 # G04
             "on_demand_specialist_agents",  # G05
             "real_forecasting",             # G06
             "real_publishing",              # G07
             "full_ux_integration",          # G08
             "production_deployment",        # G09
-            "multi_tenant_authn",          # G03
-            "object_storage",
+            "multi_tenant_authn",          # G03+
+            "object_storage_s3_exercised",  # code present, no S3 creds in sandbox
             "pgvector_index_ivfflat",       # present in code, NOT exercised (no Postgres in sandbox)
             "additional_real_connectors",  # G02 only ships OpenAlex; Crossref + arXiv candidates pending
+            "live_search_verified",         # only single-work GET verified; search blocked by rate limit
+            "memory_vector_search",        # future: pgvector-backed semantic retrieval over evidence
         ],
         description="Honestly NOT done yet. Deferred to later missions per ROADMAP.",
     )

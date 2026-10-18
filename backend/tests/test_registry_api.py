@@ -201,7 +201,7 @@ def test_reindex_embeddings(client: TestClient) -> None:
 
 
 def test_status_reports_g01_capabilities(client: TestClient) -> None:
-    """The /status endpoint must honestly list G01 + G02 capabilities."""
+    """The /status endpoint must honestly list G01 + G02 + G03 capabilities."""
     r = client.get("/status")
     body = r.json()
     caps = body["capabilities"]
@@ -216,8 +216,12 @@ def test_status_reports_g01_capabilities(client: TestClient) -> None:
     # G02 Foundry capabilities
     assert "foundry:openalex_connector" in caps
     assert "foundry:sandbox_test_pipeline" in caps
-    # G03+ items must remain in not_implemented
+    # G03 Cumulative knowledge memory
+    assert "memory:evidence_ingestion_dedup_aware" in caps
+    assert "memory:contradiction_preservation" in caps
+    assert "memory:bitemporal_provenance_no_future_leakage" in caps
+    # G04+ items must remain in not_implemented
     not_impl = body["not_implemented"]
-    assert "real_evidence_collection" in not_impl  # G03
+    assert "mold_factory" in not_impl  # G04
     assert "real_forecasting" in not_impl  # G06
-    assert "multi_tenant_authn" in not_impl  # G03
+    assert "multi_tenant_authn" in not_impl  # G03+

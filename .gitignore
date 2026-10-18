@@ -75,3 +75,6 @@ tmp/
 .AppleDouble
 .LSOverride
 ehthumbs.db
+
+# G03 — local object store snapshots (dev only)
+var/

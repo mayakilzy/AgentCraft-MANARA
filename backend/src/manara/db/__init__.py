@@ -1,5 +1,17 @@
 """Database layer."""
 
+from manara.db.memory_models import (
+    ClaimRow,
+    ClaimSupportEdgeRow,
+    EntityRelationRow,
+    EntityRow,
+    EvidenceItemRow,
+    HypothesisRow,
+    InvestigationReuseRow,
+    MeasureRow,
+    MemoryDecisionRow,
+    SourceSnapshotRow,
+)
 from manara.db.models import InvestigationRow
 from manara.db.registry_models import (
     ApprovalRow,
@@ -26,9 +38,19 @@ __all__ = [
     "CapabilityEvaluationRow",
     "CapabilityRelationshipRow",
     "CapabilityRow",
+    "ClaimRow",
+    "ClaimSupportEdgeRow",
     "ConnectorRow",
+    "EntityRelationRow",
+    "EntityRow",
+    "EvidenceItemRow",
+    "HypothesisRow",
+    "InvestigationReuseRow",
     "InvestigationRow",
+    "MeasureRow",
+    "MemoryDecisionRow",
     "SourceRow",
+    "SourceSnapshotRow",
     "get_db",
     "get_engine",
     "get_session_factory",
