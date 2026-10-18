@@ -294,6 +294,33 @@ def search_capabilities(
 
 
 @router.get(
+    "/search/coverage",
+    summary="Run the Multi-Capability Coverage search (G01-R1)",
+)
+def search_multi_coverage(
+    q: str = Query(..., min_length=2, max_length=500, description="Natural-language query"),
+    include_implicit: bool = Query(default=True),
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
+    """Multi-Capability Coverage retrieval.
+
+    Decomposes the query into research needs, picks ONE engine per need,
+    and reports coverage gaps. Use this endpoint for multi-need
+    investigation questions (e.g. "study the future of intelligent
+    prosthetics"). Use ``/registry/search`` for single-need queries
+    where ranking by overall similarity is appropriate.
+    """
+    tenant_id = _resolve_tenant()
+    reg = CapabilityRegistry(db)
+    result = reg.search_multi_coverage(
+        q,
+        tenant_id=tenant_id,
+        include_implicit=include_implicit,
+    )
+    return result.to_dict()
+
+
+@router.get(
     "/capabilities/{capability_id}/evaluations",
     summary="List evaluation history for a capability",
 )

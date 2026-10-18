@@ -130,6 +130,7 @@ markers = [
     "contract: contract / schema validation tests",
     "smoke: end-to-end API smoke tests",
     "error: error-envelope tests",
+    "live: tests that make real network calls (require RUN_LIVE_TESTS=1)",
 ]
 filterwarnings = [
     "error",

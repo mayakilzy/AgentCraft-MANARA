@@ -31,7 +31,9 @@ def test_e2e_status_discovery_contracts(client: TestClient) -> None:
     assert r1.status_code == 200
     s_body = r1.json()
     assert s_body["app"] == "MANARA"
-    assert "real_search" in s_body["not_implemented"]
+    # G02 brought real source access (foundry:openalex_connector); only
+    # multi-tenant authn and downstream missions remain "not implemented"
+    assert "multi_tenant_authn" in s_body["not_implemented"]
 
     # Step 2 — /discovery (synthetic)
     r2 = client.get("/discovery")

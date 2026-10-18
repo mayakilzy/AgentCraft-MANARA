@@ -60,14 +60,23 @@ class StatusResponse(BaseModel):
             "registry:evaluation_history",
             "registry:embedding_reindex",
             "registry:8_seed_capability_cards",
+            # G01-R1 — multi-capability coverage
+            "registry:investigation_decomposer",
+            "registry:multi_capability_coverage_search",
+            "registry:coverage_gap_analysis",
+            "registry:precision_recall_benchmark",
+            # G02 — search foundry
+            "foundry:source_candidate_catalog",
+            "foundry:safe_http_client_ssrf_protected",
+            "foundry:openalex_connector",
+            "foundry:sandbox_test_pipeline",
+            "foundry:owner_approved_promotion",
+            "foundry:quarantine_path",
         ],
-        description="Exhaustive list of G00 + G01 capabilities actually delivered.",
+        description="Exhaustive list of G00 + G01 + G01-R1 + G02 capabilities actually delivered.",
     )
     not_implemented: list[str] = Field(
         default_factory=lambda: [
-            "real_source_discovery",        # G02
-            "real_connector_execution",     # G02
-            "real_search",                  # G02 (sandboxed)
             "real_evidence_collection",     # G03
             "cumulative_knowledge_memory",  # G03
             "mold_factory",                 # G04
@@ -79,7 +88,7 @@ class StatusResponse(BaseModel):
             "multi_tenant_authn",          # G03
             "object_storage",
             "pgvector_index_ivfflat",       # present in code, NOT exercised (no Postgres in sandbox)
-            "real_e2e_pilot_investigation",
+            "additional_real_connectors",  # G02 only ships OpenAlex; Crossref + arXiv candidates pending
         ],
         description="Honestly NOT done yet. Deferred to later missions per ROADMAP.",
     )

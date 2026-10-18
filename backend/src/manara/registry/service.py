@@ -43,6 +43,11 @@ from manara.registry.converters import (
     evaluation_to_row,
     row_to_capability,
 )
+from manara.registry.decomposer import (
+    NEED_TO_CAPABILITIES,
+    DecompositionResult,
+    decompose_query,
+)
 from manara.registry.embeddings import (
     Embedder,
     Vector,
@@ -725,10 +730,368 @@ class CapabilityRegistry:
         sims = matrix_norm @ query_vec_norm
         return [float(s) for s in sims]
 
+    # ── Multi-Capability Coverage search (G01-R1) ─────────────────────────────
+    #
+    # The original ``search()`` returns engines ranked by overall similarity.
+    # For multi-need investigation queries (e.g. "study the future of
+    # prosthetics"), this misses engines that don't match the overall
+    # vocabulary but DO satisfy a specific research need (e.g.
+    # clinical-trials doesn't contain "prosthetics" but its positive
+    # example "Find interventional trials on neural interface prosthetics"
+    # is a direct match).
+    #
+    # ``search_multi_coverage`` addresses this by:
+    # 1. Decomposing the query into research needs (via decompose_query).
+    # 2. For each detected need, finding the BEST matching capability
+    #    (from the seed registry) — one engine per need.
+    # 3. Returning the union of selected engines + a coverage report
+    #    that explains which need each engine satisfies, and which needs
+    #    have NO engine available (gaps).
+
+    def search_multi_coverage(
+        self,
+        query: str,
+        *,
+        tenant_id: str,
+        top_k_per_need: int = 1,
+        min_need_relevance: float = 0.20,
+        min_engine_semantic: float = 0.10,
+        include_implicit: bool = True,
+    ) -> MultiCoverageResult:
+        """Run the Multi-Capability Coverage retrieval pipeline.
+
+        Stages:
+            1_decompose — split query into research needs.
+            2_match_per_need — for each detected need, find the best
+              matching capability (by max positive-example similarity).
+            3_dedupe — a single capability can satisfy multiple needs;
+              keep it once but list all needs it covers.
+            4_gap_analysis — needs with no matching capability become gaps.
+            5_explain — produce a human-readable explanation per hit.
+
+        Returns a :class:`MultiCoverageResult` with the selected engines,
+        the coverage map (engine → needs it covers), and the gaps.
+        """
+        # ── Stage 1: Decompose ──────────────────────────────────────────────
+        decomposition = decompose_query(query, embedder=self.embedder)
+        detected = list(decomposition.detected_needs)
+        if include_implicit:
+            detected.extend(decomposition.implicit_needs)
+
+        stage_traces: list[SearchStageTrace] = [SearchStageTrace(
+            stage="1_decompose",
+            candidates_in=-1,
+            candidates_out=len(detected),
+            notes=(
+                f"detected={len(decomposition.detected_needs)}, "
+                f"implicit={len(decomposition.implicit_needs)}, "
+                f"rejected={len(decomposition.rejected_needs)}"
+            ),
+        )]
+
+        if not detected:
+            # No needs detected — fall back to a generic search
+            return MultiCoverageResult(
+                query=query,
+                tenant_id=tenant_id,
+                decomposition=decomposition,
+                stage_traces=stage_traces,
+                hits=[],
+                coverage_map=[],
+                gaps=[g.label_en for g in decomposition.rejected_needs],
+                generated_at=datetime.now(UTC),
+            )
+
+        # ── Stage 2: Match per need ──────────────────────────────────────────
+        query_vec = self.embedder.encode_one(query)
+        query_vec_norm = query_vec / (np.linalg.norm(query_vec) + 1e-12)
+
+        # For each detected need, scan its candidate capabilities and pick
+        # the one with the best (positive_example_max_similarity, semantic)
+        # score. Skip capabilities that don't exist in this tenant.
+        all_tenant_caps = {
+            row.id: row
+            for row in self.db.execute(
+                select(CapabilityRow).where(
+                    CapabilityRow.tenant_id == tenant_id,
+                    CapabilityRow.status.in_(self.SEARCHABLE_STATUSES),
+                )
+            ).scalars()
+        }
+
+        coverage_map: list[CoverageEntry] = []
+        covered_needs: set[str] = set()
+        selected_capability_ids: set[str] = set()
+
+        for need in detected:
+            candidate_ids = NEED_TO_CAPABILITIES.get(need.need, [])
+            if not candidate_ids:
+                continue
+            # Score each candidate capability for this need
+            best_id: str | None = None
+            best_score = -1.0
+            best_pos = 0.0
+            best_sem = 0.0
+            best_neg = 0.0
+            for cap_id in candidate_ids:
+                row = all_tenant_caps.get(cap_id)
+                if row is None:
+                    continue  # capability not in this tenant's registry
+                # Positive-example max similarity
+                pos_sims = self._example_similarities(
+                    query_vec_norm, cap_id, tenant_id, kind="positive_example"
+                )
+                pos_max = max(pos_sims) if pos_sims else 0.0
+                # Semantic similarity (combined embedding)
+                sem_sim = self._semantic_similarity(query_vec, row, tenant_id=tenant_id)
+                # Negative-example max similarity (penalty)
+                neg_sims = self._example_similarities(
+                    query_vec_norm, cap_id, tenant_id, kind="negative_example"
+                )
+                neg_max = max(neg_sims) if neg_sims else 0.0
+
+                # Need-fit score: positive_example weighted highest (it
+                # captures whether the engine's documented use-cases match
+                # the query), then semantic, minus negative penalty.
+                need_fit = (
+                    (pos_max * 0.55)
+                    + (sem_sim * 0.35)
+                    - (neg_max * 0.40)
+                )
+
+                if need_fit > best_score:
+                    best_score = need_fit
+                    best_id = cap_id
+                    best_pos = pos_max
+                    best_sem = sem_sim
+                    best_neg = neg_max
+
+            if best_id is None:
+                # No capability in the registry can satisfy this need
+                continue
+            if best_pos < min_engine_semantic and best_sem < min_engine_semantic:
+                # Even the best candidate is too weak a match — report as gap
+                continue
+            # Implicit needs (added via companion rules) have a relevance
+            # capped at 0.5; we additionally require their best positive-
+            # example similarity to be at least 0.40 (a stricter threshold
+            # than for direct needs) — otherwise they're noise. This
+            # prevents "manufacturing" or "battery" from triggering
+            # weak clinical_evidence or environmental_data matches.
+            if need.relevance <= 0.5 and best_pos < 0.40:
+                continue
+
+            coverage_map.append(CoverageEntry(
+                need=need.need,
+                need_label_en=need.label_en,
+                need_label_ar=need.label_ar,
+                need_relevance=need.relevance,
+                capability_id=best_id,
+                need_fit_score=round(best_score, 4),
+                positive_example_similarity=round(best_pos, 4),
+                semantic_similarity=round(best_sem, 4),
+                negative_penalty=round(best_neg * 0.40, 4),
+                implicit=need.relevance <= 0.5,
+            ))
+            covered_needs.add(need.need)
+            selected_capability_ids.add(best_id)
+
+        stage_traces.append(SearchStageTrace(
+            stage="2_match_per_need",
+            candidates_in=len(detected),
+            candidates_out=len(coverage_map),
+            notes=f"min_engine_semantic={min_engine_semantic}",
+        ))
+
+        # ── Stage 3: Dedupe (already done — selected_capability_ids is a set) ──
+        stage_traces.append(SearchStageTrace(
+            stage="3_dedupe",
+            candidates_in=len(coverage_map),
+            candidates_out=len(selected_capability_ids),
+            notes="one entry per (need); one capability can cover multiple needs",
+        ))
+
+        # ── Stage 4: Gap analysis ────────────────────────────────────────────
+        gaps: list[str] = []
+        for need in detected:
+            if need.need not in covered_needs:
+                gaps.append(need.label_en)
+        # Also report needs that were rejected outright (below detection threshold)
+        for r in decomposition.rejected_needs:
+            gaps.append(f"{r.label_en} (below threshold)")
+
+        stage_traces.append(SearchStageTrace(
+            stage="4_gap_analysis",
+            candidates_in=len(detected),
+            candidates_out=len(gaps),
+            notes=f"covered={len(covered_needs)}, gaps={len(gaps)}",
+        ))
+
+        # ── Stage 5: Explain (build hits with reasons) ───────────────────────
+        hits: list[CapabilitySearchHit] = []
+        for cap_id in selected_capability_ids:
+            row = all_tenant_caps[cap_id]
+            cap = row_to_capability(row)
+            # Find all needs this capability covers
+            needs_covered = [c for c in coverage_map if c.capability_id == cap_id]
+            matched_by = [
+                f"covers_need={c.need} (relevance={c.need_relevance:.2f}, "
+                f"fit={c.need_fit_score:.2f}, "
+                f"positive_example={c.positive_example_similarity:.2f})"
+                for c in needs_covered
+            ]
+            # Negative-example penalty if any
+            max_neg = max((c.negative_penalty for c in needs_covered), default=0.0)
+            final_score = max((c.need_fit_score for c in needs_covered), default=0.0)
+
+            hits.append(CapabilitySearchHit(
+                capability=cap,
+                final_score=round(final_score, 4),
+                matched_by=matched_by,
+                text_similarity=0.0,  # not used in multi-coverage
+                semantic_similarity=max(
+                    (c.semantic_similarity for c in needs_covered), default=0.0
+                ),
+                negative_penalty=max_neg,
+                rejected_by_negative=[],
+            ))
+
+        # Sort hits by descending final_score
+        hits.sort(key=lambda h: h.final_score, reverse=True)
+
+        stage_traces.append(SearchStageTrace(
+            stage="5_explain",
+            candidates_in=len(selected_capability_ids),
+            candidates_out=len(hits),
+            notes=f"top_k_per_need={top_k_per_need}",
+        ))
+
+        return MultiCoverageResult(
+            query=query,
+            tenant_id=tenant_id,
+            decomposition=decomposition,
+            stage_traces=stage_traces,
+            hits=hits,
+            coverage_map=coverage_map,
+            gaps=gaps,
+            generated_at=datetime.now(UTC),
+        )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Multi-Coverage result data classes
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@dataclass
+class CoverageEntry:
+    """A single (need → capability) coverage entry."""
+
+    need: str
+    need_label_en: str
+    need_label_ar: str
+    need_relevance: float
+    capability_id: str
+    need_fit_score: float
+    positive_example_similarity: float
+    semantic_similarity: float
+    negative_penalty: float
+    implicit: bool = False
+
+
+@dataclass
+class MultiCoverageResult:
+    """The full result of a Multi-Capability Coverage search."""
+
+    query: str
+    tenant_id: str
+    decomposition: DecompositionResult
+    stage_traces: list[SearchStageTrace]
+    hits: list[CapabilitySearchHit]
+    coverage_map: list[CoverageEntry]
+    gaps: list[str]
+    generated_at: datetime
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "query": self.query,
+            "tenant_id": self.tenant_id,
+            "decomposition": {
+                "detected_needs": [
+                    {
+                        "need": d.need,
+                        "label_en": d.label_en,
+                        "label_ar": d.label_ar,
+                        "relevance": d.relevance,
+                        "keyword_signal": d.keyword_signal,
+                        "semantic_signal": d.semantic_signal,
+                    }
+                    for d in self.decomposition.detected_needs
+                ],
+                "implicit_needs": [
+                    {
+                        "need": d.need,
+                        "label_en": d.label_en,
+                        "label_ar": d.label_ar,
+                        "relevance": d.relevance,
+                    }
+                    for d in self.decomposition.implicit_needs
+                ],
+                "rejected_needs": [
+                    {
+                        "need": d.need,
+                        "label_en": d.label_en,
+                        "relevance": d.relevance,
+                    }
+                    for d in self.decomposition.rejected_needs
+                ],
+            },
+            "stage_traces": [
+                {
+                    "stage": s.stage,
+                    "candidates_in": s.candidates_in,
+                    "candidates_out": s.candidates_out,
+                    "notes": s.notes,
+                }
+                for s in self.stage_traces
+            ],
+            "hits": [
+                {
+                    "capability_id": h.capability.id,
+                    "display_name": h.capability.display_name,
+                    "final_score": round(h.final_score, 4),
+                    "matched_by": h.matched_by,
+                    "semantic_similarity": round(h.semantic_similarity, 4),
+                    "negative_penalty": round(h.negative_penalty, 4),
+                    "capability": h.capability.model_dump(mode="json"),
+                }
+                for h in self.hits
+            ],
+            "coverage_map": [
+                {
+                    "need": c.need,
+                    "need_label_en": c.need_label_en,
+                    "need_label_ar": c.need_label_ar,
+                    "need_relevance": c.need_relevance,
+                    "capability_id": c.capability_id,
+                    "need_fit_score": c.need_fit_score,
+                    "positive_example_similarity": c.positive_example_similarity,
+                    "semantic_similarity": c.semantic_similarity,
+                    "negative_penalty": c.negative_penalty,
+                    "implicit": c.implicit,
+                }
+                for c in self.coverage_map
+            ],
+            "gaps": self.gaps,
+            "generated_at": self.generated_at.isoformat(),
+        }
+
 
 __all__ = [
     "CapabilityRegistry",
     "CapabilitySearchHit",
     "CapabilitySearchResult",
+    "CoverageEntry",
+    "MultiCoverageResult",
     "SearchStageTrace",
 ]

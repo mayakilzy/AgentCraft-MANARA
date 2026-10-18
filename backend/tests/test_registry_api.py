@@ -201,7 +201,7 @@ def test_reindex_embeddings(client: TestClient) -> None:
 
 
 def test_status_reports_g01_capabilities(client: TestClient) -> None:
-    """The /status endpoint must honestly list G01 capabilities."""
+    """The /status endpoint must honestly list G01 + G02 capabilities."""
     r = client.get("/status")
     body = r.json()
     caps = body["capabilities"]
@@ -211,8 +211,13 @@ def test_status_reports_g01_capabilities(client: TestClient) -> None:
     assert "registry:miniLM_embeddings_384_multilingual" in caps
     assert "registry:negative_example_reranker" in caps
     assert "registry:8_seed_capability_cards" in caps
-    # G02+ items must remain in not_implemented
+    # G01-R1 multi-capability coverage
+    assert "registry:multi_capability_coverage_search" in caps
+    # G02 Foundry capabilities
+    assert "foundry:openalex_connector" in caps
+    assert "foundry:sandbox_test_pipeline" in caps
+    # G03+ items must remain in not_implemented
     not_impl = body["not_implemented"]
-    assert "real_source_discovery" in not_impl
-    assert "real_connector_execution" in not_impl
-    assert "real_search" in not_impl
+    assert "real_evidence_collection" in not_impl  # G03
+    assert "real_forecasting" in not_impl  # G06
+    assert "multi_tenant_authn" in not_impl  # G03

@@ -29,9 +29,9 @@ def test_status_lists_capabilities_honestly(client: TestClient) -> None:
     assert "typed_contracts:investigation" in caps
     assert "api:status" in caps
     assert "api:discovery_synthetic_only" in caps
-    # What G00 explicitly does NOT do
-    assert "real_search" in not_impl
-    assert "real_forecasting" in not_impl
+    # G02 made real source calls possible — but the multi-tenant authn and
+    # full production are still not implemented
+    assert "multi_tenant_authn" in not_impl
     assert "production_deployment" in not_impl
     # No overlap between the two lists (the spec is explicit about honesty)
     assert not (set(caps) & set(not_impl))
