@@ -13,6 +13,7 @@ from manara.api.routes import (
     agents,
     contracts,
     discovery,
+    foresight,
     foundry,
     memory,
     mold_factory,
@@ -76,6 +77,7 @@ def create_app() -> FastAPI:
     app.include_router(memory.router)
     app.include_router(mold_factory.router)
     app.include_router(agents.router)
+    app.include_router(foresight.router)
 
     @app.get("/", include_in_schema=False)
     def root() -> dict[str, str]:

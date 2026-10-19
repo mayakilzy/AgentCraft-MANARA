@@ -167,7 +167,7 @@ class ZAIProvider:
                     "MANARA_ZAI_API_KEY not set. Cannot make live LLM calls."
                 )
             try:
-                from zai import ZaiClient  # type: ignore[import-not-found]
+                from zai import ZaiClient
                 self._client = ZaiClient(api_key=self.api_key)
             except ImportError:
                 # Fall back to httpx direct API call

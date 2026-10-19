@@ -5,6 +5,11 @@ from manara.db.agent_models import (
     AgentRecipeRow,
     AgentSessionRow,
 )
+from manara.db.foresight_models import (
+    BacktestResultRow,
+    ForecastOutcomeRow,
+    ForecastRow,
+)
 from manara.db.memory_models import (
     ClaimRow,
     ClaimSupportEdgeRow,
@@ -47,6 +52,7 @@ __all__ = [
     "AgentRecipeRow",
     "AgentSessionRow",
     "ApprovalRow",
+    "BacktestResultRow",
     "Base",
     "CapabilityEmbeddingRow",
     "CapabilityEvaluationRow",
@@ -58,6 +64,8 @@ __all__ = [
     "EntityRelationRow",
     "EntityRow",
     "EvidenceItemRow",
+    "ForecastOutcomeRow",
+    "ForecastRow",
     "GapAnalysisRow",
     "HypothesisRow",
     "InvestigationReuseRow",

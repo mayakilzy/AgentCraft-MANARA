@@ -216,7 +216,7 @@ class S3CompatibleStore:
     def _ensure_client(self) -> Any:
         if self._client is None:
             try:
-                import boto3  # type: ignore[import-untyped]
+                import boto3
             except ImportError as e:
                 raise RuntimeError(
                     "boto3 not installed; install with: pip install boto3"
