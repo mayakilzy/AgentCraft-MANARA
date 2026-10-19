@@ -1,6 +1,10 @@
 import { useState } from "react";
 
-export function InvestigationHome({ onSubmitted }: { onSubmitted: (query: string) => void }) {
+interface InvestigationHomeProps {
+  onSubmitted: (query: string, moldResult: any, investigationId: string | null) => void;
+}
+
+export function InvestigationHome({ onSubmitted }: InvestigationHomeProps) {
   const [query, setQuery] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -20,7 +24,8 @@ export function InvestigationHome({ onSubmitted }: { onSubmitted: (query: string
       const body = await r.json();
       if (!r.ok) throw new Error(body.detail?.message || body.detail || "Composition failed");
       setResult(body);
-      onSubmitted(query);
+      // Pass the mold result + investigation_id to the parent for context tracking
+      onSubmitted(query, body, body.investigation_id || null);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -31,12 +36,14 @@ export function InvestigationHome({ onSubmitted }: { onSubmitted: (query: string
   return (
     <section className="panel">
       <h3 className="panel__title">
-        <span className="badge badge--ok">G08</span>
+        <span className="badge badge--ok">G09</span>
         طرح سؤال بحثي جديد · Submit New Investigation
       </h3>
       <div className="warning-box">
         أدخل سؤالك بلغة طبيعية (عربية أو إنجليزية). سيقوم منارة بتحليل احتياجاتك
         واكتشاف القدرات المتاحة والفجوات.
+        <br />
+        Enter your question in natural language (Arabic or English).
       </div>
       <textarea
         value={query}
@@ -65,28 +72,28 @@ export function InvestigationHome({ onSubmitted }: { onSubmitted: (query: string
         <div style={{ marginTop: 16 }}>
           <h4 style={{ margin: "0 0 8px" }}>نتيجة التحليل · Analysis Result</h4>
           <div className="kv">
-            <div className="kv__key">مجال جديد؟</div>
+            <div className="kv__key">مجال جديد؟ · Unknown Domain</div>
             <div className="kv__value">{result.is_unknown_domain ? "نعم ✓" : "لا (قالب موجود)"}</div>
-            <div className="kv__key">القالب</div>
+            <div className="kv__key">القالب · Mold ID</div>
             <div className="kv__value" style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>
               {result.mold_recipe_id}
             </div>
-            <div className="kv__key">مكتمل؟</div>
+            <div className="kv__key">مكتمل؟ · Complete</div>
             <div className="kv__value">
               {result.is_complete ? "✓ مكتمل (تغطية تشغيلية)" : "✗ غير مكتمل (فجوات تشغيلية)"}
             </div>
-            <div className="kv__key">نوع المخرج</div>
+            <div className="kv__key">نوع المخرج · Deliverable Type</div>
             <div className="kv__value">{result.deliverable_type}</div>
           </div>
           {result.detected_needs?.length > 0 && (
             <div style={{ marginTop: 12 }}>
               <h5 style={{ fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase" }}>
-                الاحتياجات المكتشفة ({result.detected_needs.length})
+                الاحتياجات المكتشفة · Detected Needs ({result.detected_needs.length})
               </h5>
               <ul className="list" style={{ fontSize: 12 }}>
                 {result.detected_needs.map((n: any, i: number) => (
                   <li key={i}>
-                    {n.need} (relevance={n.relevance?.toFixed(2) || "?"})
+                    {n.need} <span style={{ color: "var(--text-muted)" }}>(relevance={n.relevance?.toFixed(2) || "?"})</span>
                   </li>
                 ))}
               </ul>
@@ -95,13 +102,17 @@ export function InvestigationHome({ onSubmitted }: { onSubmitted: (query: string
           {result.coverage?.length > 0 && (
             <div style={{ marginTop: 12 }}>
               <h5 style={{ fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase" }}>
-                التغطية ({result.coverage.length})
+                التغطية · Coverage ({result.coverage.length})
               </h5>
               <ul className="list" style={{ fontSize: 12 }}>
                 {result.coverage.map((c: any, i: number) => (
                   <li key={i}>
                     {c.need} → {c.selected_capability_id || "—"}
-                    <span className="badge" style={{ fontSize: 9, marginRight: 4, background: "transparent", border: `1px solid ${c.coverage_level === "operational" ? "var(--accent)" : "var(--accent-warm)"}`, color: c.coverage_level === "operational" ? "var(--accent)" : "var(--accent-warm)" }}>
+                    <span className="badge" style={{
+                      fontSize: 9, marginRight: 4, background: "transparent",
+                      border: `1px solid ${c.coverage_level === "operational" ? "var(--accent)" : "var(--accent-warm)"}`,
+                      color: c.coverage_level === "operational" ? "var(--accent)" : "var(--accent-warm)",
+                    }}>
                       {c.coverage_level}
                     </span>
                   </li>
@@ -111,7 +122,7 @@ export function InvestigationHome({ onSubmitted }: { onSubmitted: (query: string
           )}
           {result.gaps?.length > 0 && (
             <div className="warning-box" style={{ marginTop: 12, fontSize: 12 }}>
-              <strong>الفجوات المكتشفة ({result.gaps.length}):</strong>
+              <strong>الفجوات المكتشفة · Gaps ({result.gaps.length}):</strong>
               <ul style={{ margin: "6px 0 0", paddingRight: 18 }}>
                 {result.gaps.map((g: any, i: number) => (
                   <li key={i}>
@@ -121,6 +132,14 @@ export function InvestigationHome({ onSubmitted }: { onSubmitted: (query: string
               </ul>
             </div>
           )}
+          <div style={{ marginTop: 12 }}>
+            <button
+              className="action-btn"
+              onClick={() => onSubmitted(query, result, result.investigation_id || null)}
+            >
+              ← متابعة في مساحة التحقيق · Open in Workspace
+            </button>
+          </div>
         </div>
       )}
     </section>
