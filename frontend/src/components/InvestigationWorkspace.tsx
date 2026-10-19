@@ -27,8 +27,12 @@ export function InvestigationWorkspace({ ctx, onClear }: WorkspaceProps) {
     setLoading(false);
   }, [ctx?.moldResult, ctx?.investigationId]);
 
-  // Actions: create investigation, advance workflow, create publication
+  // Actions: create publication — uses the REAL investigation_id, no fallback
   async function doAction(name: string, url: string, body?: any) {
+    if (!ctx?.investigationId) {
+      alert("خطأ: لا يوجد معرّف تحقيق حقيقي. أعد بدء التحقيق من الرئيسية.\nError: No real investigation ID. Restart from Home.");
+      return;
+    }
     setAction(name);
     try {
       const r = await fetch(url, {
@@ -161,7 +165,7 @@ export function InvestigationWorkspace({ ctx, onClear }: WorkspaceProps) {
                 "create_dossier",
                 "/publishing/publications",
                 {
-                  investigation_id: ctx.investigationId || "inv-session",
+                  investigation_id: ctx.investigationId,
                   output_type: "research_dossier",
                   title: `Research Dossier: ${ctx.query.slice(0, 60)}`,
                   scope: { topic: ctx.query },
@@ -184,7 +188,7 @@ export function InvestigationWorkspace({ ctx, onClear }: WorkspaceProps) {
                 "create_presenter",
                 "/publishing/publications",
                 {
-                  investigation_id: ctx.investigationId || "inv-session",
+                  investigation_id: ctx.investigationId,
                   output_type: "presenter_edition",
                   title: `Presenter Script: ${ctx.query.slice(0, 60)}`,
                   scope: { topic: ctx.query },
@@ -207,7 +211,7 @@ export function InvestigationWorkspace({ ctx, onClear }: WorkspaceProps) {
                 "create_storyboard",
                 "/publishing/publications",
                 {
-                  investigation_id: ctx.investigationId || "inv-session",
+                  investigation_id: ctx.investigationId,
                   output_type: "visual_storyboard",
                   title: `Storyboard: ${ctx.query.slice(0, 60)}`,
                   scope: { topic: ctx.query },

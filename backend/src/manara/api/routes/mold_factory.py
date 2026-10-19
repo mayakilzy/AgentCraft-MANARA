@@ -57,6 +57,7 @@ class ComposeMoldResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     query: str
+    investigation_id: str | None = None
     is_unknown_domain: bool
     detection_reasoning: str
     detected_needs: list[dict[str, Any]]
@@ -65,6 +66,8 @@ class ComposeMoldResponse(BaseModel):
     mold_recipe_id: str
     mold: dict[str, Any]
     is_complete: bool
+    is_catalog_complete: bool = False
+    deliverable_type: str = "unknown"
     composition_notes: str
 
 
@@ -117,22 +120,46 @@ def compose_mold(
 ) -> ComposeMoldResponse:
     """Compose a temporary mold for the given query.
 
-    Steps:
-    1. Detect whether the domain is known (existing mold) or unknown.
-    2. If known: return the existing mold's recipe (reuse path).
-    3. If unknown: decompose the query into research needs.
-    4. For each need: find a matching capability in the registry.
-    5. For each need without a match: record a gap (no fabrication).
-    6. Compose the temporary mold from matched capabilities + gaps.
-    7. Persist the mold recipe (state=temporary).
+    Per owner (G09-R1):
+    > "أنشئ InvestigationRow حقيقياً بمعرّف ثابت عند بدء التحقيق."
+    > "اربطه بالقالب الناتج."
+
+    If no investigation_id is provided, a new InvestigationRow is created
+    automatically and linked to the mold. This ensures every mold has a
+    real investigation backing it — no null IDs, no fallbacks.
     """
     tenant_id = _resolve_tenant()
+
+    # G09-R1: Create a real InvestigationRow if none provided
+    investigation_id = req.investigation_id
+    if not investigation_id:
+        import secrets as _secrets
+
+        from manara.db.models import InvestigationRow as _InvRow
+        investigation_id = f"inv-{_secrets.token_hex(8)}"
+        inv_row = _InvRow(
+            id=investigation_id,
+            tenant_id=tenant_id,
+            user_id="web-user",
+            state="received",
+            topic=req.query[:500],
+            payload={
+                "id": investigation_id,
+                "tenant_id": tenant_id,
+                "user_id": "web-user",
+                "scope": {"topic": req.query},
+                "state": "received",
+            },
+        )
+        db.add(inv_row)
+        db.commit()
+
     architect = MoldArchitect(db)
     try:
         result = architect.compose_mold(
             req.query,
             tenant_id=tenant_id,
-            investigation_id=req.investigation_id,
+            investigation_id=investigation_id,
             domain_hint=req.domain_hint,
         )
     except Exception as e:

@@ -224,14 +224,37 @@ class MoldArchitect:
     ) -> MoldCompositionResult:
         """Compose a temporary mold for the given query.
 
-        Per owner (G04-R1):
-        > "إذا كان لدينا محرك مسجل بلا موصل فعلي:
-        > 1. احتفظ به كمرشح معرفي.
-        > 2. سجّل فجوة تشغيلية تلقائياً.
-        > 3. اطلب من Foundry البحث عن حل متاح ضمن قدراته الحالية.
-        > 4. إذا تعذر الحل، احتفظ بحالة unresolved.
-        > 5. اجعل جاهزية القالب تعكس هذا النقص بوضوح."
+        Per owner (G09-R1):
+        > "أنشئ InvestigationRow حقيقياً بمعرّف ثابت عند بدء التحقيق."
+        > "اربطه بالقالب الناتج."
+
+        If investigation_id is None, a real InvestigationRow is created
+        automatically. This ensures every mold has a real investigation
+        backing it — no null IDs.
         """
+        # G09-R1: Create a real InvestigationRow if none provided
+        if investigation_id is None:
+            import secrets as _secrets
+
+            from manara.db.models import InvestigationRow as _InvRow
+            investigation_id = f"inv-{_secrets.token_hex(8)}"
+            inv_row = _InvRow(
+                id=investigation_id,
+                tenant_id=tenant_id,
+                user_id="system",
+                state="received",
+                topic=query[:500],
+                payload={
+                    "id": investigation_id,
+                    "tenant_id": tenant_id,
+                    "user_id": "system",
+                    "scope": {"topic": query},
+                    "state": "received",
+                },
+            )
+            self.db.add(inv_row)
+            self.db.commit()
+
         # ── Step 1: Detect ───────────────────────────────────────────────────
         detection = self.detector.detect(query, tenant_id=tenant_id, domain_hint=domain_hint)
 
