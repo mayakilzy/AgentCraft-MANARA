@@ -29,6 +29,11 @@ from manara.db.mold_models import (
     MoldRecipeRow,
     MoldReuseRow,
 )
+from manara.db.publishing_models import (
+    PublicationClaimRow,
+    PublicationRow,
+    StoryboardSceneRow,
+)
 from manara.db.registry_models import (
     ApprovalRow,
     CapabilityEmbeddingRow,
@@ -75,8 +80,11 @@ __all__ = [
     "MemoryDecisionRow",
     "MoldRecipeRow",
     "MoldReuseRow",
+    "PublicationClaimRow",
+    "PublicationRow",
     "SourceRow",
     "SourceSnapshotRow",
+    "StoryboardSceneRow",
     "get_db",
     "get_engine",
     "get_session_factory",
