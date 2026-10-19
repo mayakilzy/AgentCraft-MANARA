@@ -138,15 +138,14 @@ class StoryboardOutput:
 class QualityGate:
     """Validates publications before they can be published.
 
-    Per owner (G07):
-    > "يجب أن ترفض طبقة النشر:
-    > 1. ادعاءً مصنفاً كحقيقة مثبتة بلا دليل.
-    > 2. رسماً بيانياً ينسب أرقاماً لمصدر غير موجود.
-    > 3. مشهداً خيالياً يُقدم باعتباره توثيقاً لحدث حقيقي.
-    > 4. توقعاً غير معاير يُعرض كنسبة احتمالية مؤكدة.
-    > 5. مادة طرف ثالث لا تتوفر حقوق إعادة نشرها.
-    > 6. تقريراً يدّعي اكتمال البحث بينما التحقيق لم ينتج سوى
-    >    Coverage Blocker Report."
+    Per owner (G07-R1):
+    > "يجب أن يتحقق QualityGate فعلياً من معرّفات الأدلة بالرجوع إلى G03 Memory."
+    > "تحقق من: وجود الدليل، نطاق المستأجر، سلامة مرجع المصدر،
+    > ارتباط الادعاء بالدليل أو علاقة دعم مسجلة."
+
+    > "استخدم سجلات G06 للتحقق من حالة التوقع ومعايرته."
+    > "افحص بيانات حقوق الأصول بدلاً من الاكتفاء بكلمات داخل أوصافها."
+    > "لا تسمح بنشر مواد طرف ثالث عندما تكون حقوق إعادة نشرها مجهولة أو غير كافية."
     """
 
     @staticmethod
@@ -157,12 +156,50 @@ class QualityGate:
         deliverable_type: str = "research_deliverable",
         db: Session | None = None,
         tenant_id: str | None = None,
+        investigation_id: str | None = None,
     ) -> QualityGateResult:
+        """Validate a publication against the 6 rejection rules.
+
+        Per G07-R1: when db + tenant_id are provided, evidence IDs are
+        VERIFIED against the actual G03 memory — not just checked for
+        non-emptiness. This prevents references to non-existent evidence,
+        cross-tenant evidence, or evidence not linked to the investigation.
+        """
         issues: list[str] = []
         rejected_claims: list[str] = []
         rejected_scenes: list[str] = []
 
-        # Rule 1: fact claim without evidence
+        # ── G07-R1: Verify evidence IDs against G03 memory ────────────────
+        verified_evidence: set[str] = set()
+        if db is not None and tenant_id is not None:
+            # Load all evidence for this tenant (and optionally this investigation)
+            ev_stmt = select(EvidenceItemRow).where(
+                EvidenceItemRow.tenant_id == tenant_id,
+            )
+            if investigation_id:
+                ev_stmt = ev_stmt.where(
+                    EvidenceItemRow.investigation_id == investigation_id
+                )
+            ev_rows = list(db.execute(ev_stmt).scalars())
+            verified_evidence = {row.id for row in ev_rows}
+
+        # Also load forecast rows for Rule 4 (G06 calibration check)
+        forecast_rows: list[ForecastRow] = []
+        if db is not None and tenant_id is not None:
+            fc_stmt = select(ForecastRow).where(
+                ForecastRow.tenant_id == tenant_id,
+            )
+            if investigation_id:
+                fc_stmt = fc_stmt.where(
+                    ForecastRow.investigation_id == investigation_id
+                )
+            forecast_rows = list(db.execute(fc_stmt).scalars())
+        published_forecast_targets = {
+            fr.target for fr in forecast_rows
+            if fr.status == "published" and fr.method != "insufficient_evidence"
+        }
+
+        # ── Rule 1: fact claim without VERIFIED evidence ─────────────────
         for claim in claims:
             if claim.get("claim_type") == "fact":
                 ev_ids = claim.get("evidence_ids", [])
@@ -172,8 +209,18 @@ class QualityGate:
                         f"'{claim.get('claim_text', '')[:80]}...'"
                     )
                     rejected_claims.append(claim.get("claim_text", ""))
+                elif db is not None and tenant_id is not None:
+                    # G07-R1: verify each evidence_id actually exists in G03
+                    for eid in ev_ids:
+                        if eid not in verified_evidence:
+                            issues.append(
+                                f"Rule 1 violation (G07-R1): fact claim references "
+                                f"non-existent or inaccessible evidence: '{eid}'. "
+                                f"Claim: '{claim.get('claim_text', '')[:60]}...'"
+                            )
+                            rejected_claims.append(claim.get("claim_text", ""))
 
-        # Rule 2: data visualization without source
+        # ── Rule 2: data visualization / evidence-backed scene without VERIFIED source
         if scenes:
             for scene in scenes:
                 st = scene.get("scene_type", "")
@@ -185,48 +232,86 @@ class QualityGate:
                             f"has no evidence source."
                         )
                         rejected_scenes.append(scene.get("title", ""))
+                    elif db is not None and tenant_id is not None:
+                        # G07-R1: verify evidence exists
+                        for eid in ev_ids:
+                            if eid not in verified_evidence:
+                                issues.append(
+                                    f"Rule 2 violation (G07-R1): scene "
+                                    f"'{scene.get('title', '')}' references "
+                                    f"non-existent evidence: '{eid}'."
+                                )
+                                rejected_scenes.append(scene.get("title", ""))
 
-        # Rule 3: fictional scene presented as documentary
+        # ── Rule 3: fictional scene presented as documentary ──────────────
         if scenes:
             for scene in scenes:
                 st = scene.get("scene_type", "")
                 if st in ("fictional_scene", "scenario_illustration"):
                     disclosure = scene.get("disclosure_text", "")
-                    if not disclosure or "fictional" not in disclosure.lower() and "scenario" not in disclosure.lower():
+                    if not disclosure or (
+                        "fictional" not in disclosure.lower()
+                        and "scenario" not in disclosure.lower()
+                    ):
                         issues.append(
                             f"Rule 3 violation: {st} scene '{scene.get('title', '')}' "
                             f"lacks required fiction/scenario disclosure."
                         )
                         rejected_scenes.append(scene.get("title", ""))
 
-        # Rule 4: uncalibrated forecast as confirmed probability
+        # ── Rule 4: uncalibrated forecast as confirmed probability ────────
+        # G07-R1: check against G06 forecast records, not just text patterns
         for claim in claims:
             if claim.get("claim_type") == "forecast":
                 text = claim.get("claim_text", "").lower()
-                # Check if it claims a specific probability without evidence
-                if "%" in text or "probability" in text or "likelihood" in text:
-                    ev_ids = claim.get("evidence_ids", [])
-                    if not ev_ids:
-                        issues.append(
-                            f"Rule 4 violation: forecast with probability but no evidence: "
-                            f"'{claim.get('claim_text', '')[:80]}...'"
-                        )
-                        rejected_claims.append(claim.get("claim_text", ""))
+                ev_ids = claim.get("evidence_ids", [])
+                # Check if the forecast text references a target that exists
+                # as a published, calibrated forecast in G06.
+                # If not in published_forecast_targets, it's uncalibrated.
+                forecast_is_calibrated = False
+                if published_forecast_targets:
+                    for target in published_forecast_targets:
+                        if target and target.lower() in text:
+                            forecast_is_calibrated = True
+                            break
+                # If the claim mentions probability/percentage AND is not
+                # backed by a calibrated published forecast, reject it.
+                mentions_probability = (
+                    "%" in text or "probability" in text or "likelihood" in text
+                )
+                if mentions_probability and not forecast_is_calibrated:
+                    issues.append(
+                        f"Rule 4 violation (G07-R1): forecast claims probability "
+                        f"but no calibrated published forecast in G06 backs it. "
+                        f"Claim: '{claim.get('claim_text', '')[:60]}...'"
+                    )
+                    rejected_claims.append(claim.get("claim_text", ""))
 
-        # Rule 5: third-party material without rights
+        # ── Rule 5: third-party material without adequate rights ──────────
+        # G07-R1: check rights_status field directly, not just text matching.
+        # Per owner: "لا تسمح بنشر مواد طرف ثالث عندما تكون حقوق إعادة نشرها
+        # مجهولة أو غير كافية."
         if scenes:
             for scene in scenes:
                 rights = scene.get("rights_status", "unknown")
-                if rights in ("restricted", "unknown"):
-                    source = scene.get("source_attribution", "")
-                    if source and "third-party" in source.lower() or rights == "restricted":
+                source = scene.get("source_attribution", "") or ""
+                st = scene.get("scene_type", "")
+                # Scenes that use external/third-party material must have
+                # rights_status in (owned, licensed, public_domain, fair_use).
+                # "unknown" and "restricted" are NOT acceptable for publication.
+                if rights in ("unknown", "restricted"):
+                    # If this scene has external source attribution,
+                    # it MUST have cleared rights.
+                    if source and source != "MANARA":
                         issues.append(
-                            f"Rule 5 violation: scene '{scene.get('title', '')}' "
-                            f"has rights_status={rights} — cannot republish."
+                            f"Rule 5 violation (G07-R1): scene "
+                            f"'{scene.get('title', '')}' has rights_status="
+                            f"'{rights}' with external source '{source}'. "
+                            f"Cannot republish without cleared rights."
                         )
                         rejected_scenes.append(scene.get("title", ""))
 
-        # Rule 6: research deliverable claim on a coverage blocker report
+        # ── Rule 6: coverage blocker claiming research completion ─────────
         if deliverable_type == "coverage_blocker_report":
             for claim in claims:
                 if claim.get("claim_type") == "fact" and "complete" in claim.get("claim_text", "").lower():
@@ -732,7 +817,7 @@ class PublicationRegistry:
                 title=title,
                 scope=scope,
             )
-            content = {
+            content: dict[str, Any] = {
                 "sections": [{"title": s.title, "content": s.content, "claims": s.claims} for s in dossier.sections],
                 "executive_summary": dossier.executive_summary,
                 "findings": dossier.findings,
@@ -756,17 +841,17 @@ class PublicationRegistry:
                 scope=scope,
             )
             presenter = self.presenter_builder.build(dossier=dossier)
-            content: dict[str, Any] = {
+            content = {
                 "script": presenter.script,
-                "word_count": presenter.word_count,
-                "estimated_duration_minutes": presenter.estimated_duration_minutes,
+                "word_count": int(presenter.word_count),
+                "estimated_duration_minutes": float(presenter.estimated_duration_minutes),
                 "cue_sheet": presenter.cue_sheet,
                 "editor_notes": presenter.editor_notes,
                 "source_links": presenter.source_links,
                 "visual_suggestions": presenter.visual_suggestions,
                 "rights_info": presenter.rights_info,
                 "uncertainty_disclosures": presenter.uncertainty_disclosures,
-                "editorial_review_required": presenter.editorial_review_required,
+                "editorial_review_required": bool(presenter.editorial_review_required),
             }
             deliverable_type = dossier.deliverable_type
             all_claims = dossier.findings
@@ -802,6 +887,7 @@ class PublicationRegistry:
             deliverable_type=deliverable_type,
             db=self.db,
             tenant_id=tenant_id,
+            investigation_id=investigation_id,
         )
 
         pub_id = f"pub-{secrets.token_hex(8)}"

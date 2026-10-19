@@ -10,9 +10,11 @@ Endpoints:
 
 from __future__ import annotations
 
+import json
 from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import PlainTextResponse, Response
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -115,16 +117,18 @@ def get_publication(pub_id: str, db: Session = Depends(get_db)) -> dict[str, Any
     }
 
 
-@router.get("/publications/{pub_id}/download", summary="Download publication (json/markdown/text)")
+@router.get("/publications/{pub_id}/download", summary="Download publication as a file (json/markdown/text)")
 def download_publication(
     pub_id: str,
     db: Session = Depends(get_db),
     format: str = Query(default="json"),
-) -> dict[str, Any]:
-    """Download a publication in the requested format.
+) -> Response:
+    """Download a publication as an actual file with proper Content-Type and filename.
 
-    Per owner (G07):
-    > "التنزيل ينتج ملفاً سليماً وغير فارغ."
+    Per owner (G07-R1):
+    > "اجعل API التنزيل يعيد ملفات فعلية بصيغ JSON وMarkdown وTXT،
+    > مع Content-Type واسم ملف صحيحين."
+    > "اختبر صحة المحتوى وعدم فراغ الملف وسلامة الترميز العربي."
     """
     tenant_id = _resolve_tenant()
     registry = PublicationRegistry(db)
@@ -134,11 +138,34 @@ def download_publication(
             f"publication {pub_id} not found or not downloadable "
             f"(quality gate may have failed)"
         )
-    return {
-        "publication_id": pub_id,
-        "format": format,
-        "content": content,
-    }
+
+    # Generate a safe filename
+    row = registry.get_publication(pub_id, tenant_id=tenant_id)
+    safe_title = "".join(c if c.isalnum() or c in "-_" else "_" for c in (row.title if row else "publication"))[:60]
+    filename = f"{safe_title}.{format}"
+
+    if format == "json":
+        # Return JSON as a file download
+        content_str = json.dumps(content, ensure_ascii=False, indent=2)
+        return Response(
+            content=content_str.encode("utf-8"),
+            media_type="application/json; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+    elif format == "markdown":
+        return PlainTextResponse(
+            content=content,
+            media_type="text/markdown; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+    elif format == "text":
+        return PlainTextResponse(
+            content=content,
+            media_type="text/plain; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+    else:
+        raise ValidationError(f"unsupported format: {format}")
 
 
 __all__ = ["router"]
