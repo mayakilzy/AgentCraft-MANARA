@@ -201,12 +201,26 @@ class TestConnectorContract:
     def test_get_work_with_valid_id_format_attempts_call(self):
         """A valid W-prefixed ID triggers a real call. The call may fail
         in sandbox if no network, or return 404 if the ID was retired —
-        both are acceptable for this contract test."""
+        both are acceptable for this contract test.
+
+        BACKEND-VERIFICATION-01: now that SafeHttpClient strictly enforces
+        expected_content_types, an unexpected content-type returned by the
+        live API is also an acceptable contract-test outcome (the strict
+        check is the NEW correct behavior — the test verifies the call was
+        ATTEMPTED, not that it succeeded).
+        """
         with OpenAlexConnector() as conn:
             # Use a known OpenAlex work ID (this is the seminal "Attention is all you need" paper)
             work, record = conn.get_work("W2962830651")
-            # Either success (200) or a network/sandbox error — both acceptable
-            assert record.error is None or "rate_limited" in record.error or "Connection" in str(record.error) or "status_4" in record.error or "status_5" in record.error
+            # Either success (200) or a network/sandbox/strict-check error — all acceptable
+            assert (
+                record.error is None
+                or "rate_limited" in record.error
+                or "Connection" in str(record.error)
+                or "status_4" in record.error
+                or "status_5" in record.error
+                or "unexpected_content_type" in record.error  # BACKEND-VERIFICATION-01
+            )
             # If successful, the work must have the expected shape
             if record.error is None and record.status_code == 200:
                 assert work is not None

@@ -90,6 +90,97 @@ class ReuseSearchResult:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Module-level helpers
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Minimum token length for relevance matching. Tokens shorter than this are
+# ignored (e.g. "a", "of", "the" in English; "و", "في" in Arabic).
+_MIN_TOKEN_LEN = 3
+# Stopwords skipped during tokenization. Kept deliberately small — we are not
+# doing NLP-grade search, just a coarse relevance filter on top of the SQL
+# query. Real semantic search lives in the registry embeddings.
+_STOPWORDS: frozenset[str] = frozenset(
+    {
+        # English
+        "the", "and", "for", "are", "but", "not", "you", "all", "can", "her",
+        "was", "one", "our", "out", "his", "has", "had", "how", "its", "who",
+        "did", "yes", "him", "any", "she", "may", "yet", "say", "own", "too",
+        # Arabic
+        "\u0639\u0644\u0649", "\u0641\u064a", "\u0645\u0646", "\u0625\u0644\u0649",
+        "\u0639\u0646", "\u0645\u0639", "\u0647\u0630\u0627", "\u0647\u0630\u0647",
+        "\u0630\u0644\u0643", "\u0627\u0644\u062a\u064a", "\u0627\u0644\u0630\u064a",
+        "\u0643\u0627\u0646", "\u0643\u0627\u0646\u062a", "\u0642\u062f",
+        "\u0643\u0644", "\u0628\u0639\u0636", "\u063a\u064a\u0631",
+        "\u0628\u064a\u0646", "\u0623\u0648",
+    }
+)
+
+
+def _tokenize_query(query: str) -> set[str]:
+    """Tokenize a search query into a set of lowercase significant tokens.
+
+    The tokenizer is intentionally simple: split on whitespace + punctuation,
+    keep tokens of length >= 3, drop stopwords. This is NOT a full-text search
+    engine — it is a coarse relevance filter that prevents the prior-memory
+    query from returning ALL prior evidence when the caller passed a real
+    query string. Empty query -> empty set (caller keeps back-compat behavior).
+    """
+    if not query:
+        return set()
+    tokens = re.split(r"[^0-9A-Za-z\u0600-\u06FF]+", query.lower())
+    return {
+        tok
+        for tok in tokens
+        if len(tok) >= _MIN_TOKEN_LEN and tok not in _STOPWORDS
+    }
+
+
+def _token_matches(token: str, haystack: str) -> bool:
+    """Return True if ``token`` appears as a whole word OR as a stem of a
+    longer word in ``haystack`` (both already lowercased).
+
+    The stem match handles English singular/plural forms by stripping
+    common suffixes ('s', 'es', 'ing', 'ed') from BOTH the token and
+    each word in the haystack, then comparing the stems. This is
+    intentionally lightweight — we are not doing NLP-grade stemming,
+    just enough to match "prosthetics" against "prosthetic" or
+    "batteries" against "battery".
+
+    Examples:
+    * token="prosthetics", haystack="neural interface for prosthetic control"
+      → True (stem match: "prosthetic" == "prosthetic")
+    * token="battery", haystack="lithium batteries"
+      → True (stem match: "battery" == "batteri" after stripping 'es')
+    * token="neural", haystack="neural interfaces"
+      → True (whole-word match)
+    * token="xyz", haystack="anything else"
+      → False
+    """
+    # Candidate stems for the token (token + de-suffixed forms)
+    token_stems = {token}
+    if len(token) > 4:
+        for suffix in ("s", "es", "ing", "ed"):
+            if token.endswith(suffix):
+                token_stems.add(token[: -len(suffix)])
+                # Also handle "ies" → "y" (batteries → battery)
+                if suffix == "es" and token.endswith("ies"):
+                    token_stems.add(token[:-3] + "y")
+
+    # For each word in haystack, compute its stems and check intersection
+    for word in re.findall(r"[0-9A-Za-z\u0600-\u06FF]+", haystack):
+        word_stems = {word}
+        if len(word) > 4:
+            for suffix in ("s", "es", "ing", "ed"):
+                if word.endswith(suffix):
+                    word_stems.add(word[: -len(suffix)])
+                    if suffix == "es" and word.endswith("ies"):
+                        word_stems.add(word[:-3] + "y")
+        if token_stems & word_stems:
+            return True
+    return False
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Memory Curator
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -522,6 +613,28 @@ class MemoryCurator:
 
         rows = list(self.db.execute(stmt).scalars())
 
+        # Relevance filtering (BACKEND-VERIFICATION-01): tokenize the query
+        # and keep only rows whose content_preview / source_id / kind shares
+        # at least one token with it. We use prefix matching to handle
+        # singular/plural (e.g. "prosthetics" matches "prosthetic") and
+        # case-insensitive comparison. Empty query -> keep everything.
+        query_tokens = _tokenize_query(query)
+        if query_tokens:
+            filtered: list[EvidenceItemRow] = []
+            for r in rows:
+                haystack = " ".join(
+                    str(s) for s in (
+                        getattr(r, "content_preview", ""),
+                        getattr(r, "source_id", ""),
+                        getattr(r, "kind", ""),
+                    ) if s
+                ).lower()
+                # Match if any token appears as a whole word OR as a prefix
+                # of a longer word (handles singular/plural forms).
+                if any(_token_matches(tok, haystack) for tok in query_tokens):
+                    filtered.append(r)
+            rows = filtered
+
         # Freshness assessment per item
         freshness: dict[str, str] = {}
         now = datetime.now(UTC)
@@ -540,10 +653,17 @@ class MemoryCurator:
 
         gaps: list[str] = []
         if not rows:
-            gaps.append(
-                "No prior evidence found. This investigation will need to "
-                "acquire new evidence via the Foundry (G02)."
-            )
+            if query_tokens:
+                gaps.append(
+                    f"No prior evidence matches query tokens {sorted(query_tokens)!r}. "
+                    "This investigation will need to acquire new evidence via "
+                    "the Foundry (G02)."
+                )
+            else:
+                gaps.append(
+                    "No prior evidence found. This investigation will need to "
+                    "acquire new evidence via the Foundry (G02)."
+                )
 
         return ReuseSearchResult(
             query=query,

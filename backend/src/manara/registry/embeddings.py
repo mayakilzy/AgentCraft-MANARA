@@ -163,7 +163,22 @@ class EmbeddingStoreProtocol(Protocol):
     ) -> list[tuple[CapabilityEmbeddingRow, float]]:
         ...
 
-    def delete_for_capability(self, db: Session, *, capability_id: str) -> int:
+    def delete_for_capability(
+        self,
+        db: Session,
+        *,
+        capability_id: str,
+        tenant_id: str | None = None,
+    ) -> int:
+        """Delete all embeddings for a capability.
+
+        Per BACKEND-VERIFICATION-01: ``tenant_id`` is now required when the
+        caller knows it (defense in depth — even if the service layer already
+        verified ownership, the store SHOULD NOT delete rows belonging to a
+        different tenant). Pass ``None`` only when the caller has already
+        verified ownership AND wants the legacy cross-tenant delete behavior
+        (e.g. catalog migrations).
+        """
         ...
 
 
@@ -241,10 +256,18 @@ class NumpyEmbeddingStore:
         )
         return ranked[:top_k]
 
-    def delete_for_capability(self, db: Session, *, capability_id: str) -> int:
+    def delete_for_capability(
+        self,
+        db: Session,
+        *,
+        capability_id: str,
+        tenant_id: str | None = None,
+    ) -> int:
         stmt = select(CapabilityEmbeddingRow).where(
-            CapabilityEmbeddingRow.capability_id == capability_id
+            CapabilityEmbeddingRow.capability_id == capability_id,
         )
+        if tenant_id is not None:
+            stmt = stmt.where(CapabilityEmbeddingRow.tenant_id == tenant_id)
         rows = list(db.execute(stmt).scalars())
         for r in rows:
             db.delete(r)
@@ -320,8 +343,18 @@ class PgvectorEmbeddingStore:
             min_similarity=min_similarity,
         )
 
-    def delete_for_capability(self, db: Session, *, capability_id: str) -> int:
-        return NumpyEmbeddingStore().delete_for_capability(db, capability_id=capability_id)
+    def delete_for_capability(
+        self,
+        db: Session,
+        *,
+        capability_id: str,
+        tenant_id: str | None = None,
+    ) -> int:
+        return NumpyEmbeddingStore().delete_for_capability(
+            db,
+            capability_id=capability_id,
+            tenant_id=tenant_id,
+        )
 
 
 # ─────────────────────────────────────────────────────────────────────────────

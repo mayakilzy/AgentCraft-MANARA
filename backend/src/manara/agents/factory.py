@@ -547,11 +547,31 @@ class EphemeralAgentRuntime:
         *,
         session_id: str,
         tenant_id: str,
+        tool_executor: Any | None = None,
     ) -> ExecutionResult:
-        """Execute the agent session (call the LLM provider).
+        """Execute the agent session (call the LLM provider + dispatch tools).
 
         Per owner (G05):
         > "لا تدّعِ نجاح تشغيل LLM حقيقي إذا كان الاختبار يستخدم Mock Provider."
+
+        Per owner (BACKEND-VERIFICATION-01):
+        > "صلاحيات استخدام الأدوات. دورة تنفيذ حقيقية للأدوات."
+        > "إذا كان التنفيذ الحالي يرسل Prompt إلى LLM دون استدعاء الأدوات،
+        >  فصنفه بدقة وسجل ما ينقصه."
+
+        BACKEND-VERIFICATION-01 change: this method now ALSO dispatches tool
+        calls emitted by the LLM. The flow is:
+        1. Call provider.generate(system_prompt, user_prompt, granted_tools=...).
+           The MockProvider emits ``TOOL_CALL:`` lines for each granted tool.
+           A live provider may use native function-calling.
+        2. Parse tool calls from the response text.
+        3. For each requested tool, dispatch through ``tool_executor``
+           (default ``RegistryToolExecutor`` bound to the session's DB).
+           The executor ENFORCES the granted set — any tool NOT in
+           ``session.granted_tools_json`` is recorded as
+           ``status="denied_not_in_granted_set"``.
+        4. Record every invocation (executed or denied) in
+           ``task_output_json["tool_invocations"]`` for audit.
         """
         session = self.db.get(AgentSessionRow, session_id)
         if session is None or session.tenant_id != tenant_id:
@@ -565,6 +585,13 @@ class EphemeralAgentRuntime:
         session.status = "running"
         self.db.commit()
 
+        # Lazy-import the default tool executor + parser
+        if tool_executor is None:
+            from manara.agents.tool_executor import RegistryToolExecutor
+
+            tool_executor = RegistryToolExecutor(db=self.db)
+        from manara.agents.tool_executor import parse_tool_calls
+
         try:
             # Build the user prompt from the task description + input
             user_prompt = session.task_description
@@ -575,17 +602,36 @@ class EphemeralAgentRuntime:
                     session.task_input_json, indent=2, ensure_ascii=False
                 )
 
-            # Call the LLM provider
+            # Call the LLM provider, passing granted_tools so the MockProvider
+            # emits TOOL_CALL lines (live providers use native function-calling).
             response: LLMResponse = self.provider.generate(
                 system_prompt=recipe_row.system_prompt,
                 user_prompt=user_prompt,
+                granted_tools=session.granted_tools_json or None,
             )
 
-            # Record output
+            # Parse tool calls from the response text + dispatch each through
+            # the ToolExecutor (which enforces the granted set).
+            requested_calls = parse_tool_calls(response.text)
+            invocations = []
+            for call in requested_calls:
+                inv = tool_executor.invoke(
+                    tool_name=call["tool_name"],
+                    arguments=call.get("arguments", {}),
+                    granted_tools=session.granted_tools_json or [],
+                    tenant_id=tenant_id,
+                    investigation_id=session.investigation_id,
+                )
+                invocations.append(inv.to_dict())
+
+            # Record output + tool invocations for audit
             session.task_output_json = {
                 "text": response.text,
                 "is_mock": response.is_mock,
                 "tokens_used": response.tokens_used,
+                "tool_invocations": invocations,
+                "tool_invocation_count": len(invocations),
+                "tool_invocation_statuses": [i["status"] for i in invocations],
             }
             session.output_summary = response.text[:500]
             session.status = "completed"

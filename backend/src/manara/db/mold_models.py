@@ -20,6 +20,7 @@ from typing import Any
 
 from sqlalchemy import (
     JSON,
+    Boolean,
     DateTime,
     ForeignKey,
     Index,
@@ -192,7 +193,7 @@ class MoldReuseRow(Base):
     reuse_rationale: Mapped[str] = mapped_column(Text, nullable=False, default="")
     # Was the mold updated during this reuse (e.g. new capability added)?
     modified_during_reuse: Mapped[bool] = mapped_column(
-        JSON, nullable=False, default=False  # SQLAlchemy boolean stored as 0/1
+        Boolean, nullable=False, default=False  # SQLAlchemy boolean stored as 0/1
     )
 
     reused_at: Mapped[datetime] = mapped_column(

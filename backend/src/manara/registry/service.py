@@ -242,7 +242,9 @@ class CapabilityRegistry:
         row = self.get_capability(capability_id, tenant_id=tenant_id)
         if row is None:
             return False
-        self.embedding_store.delete_for_capability(self.db, capability_id=capability_id)
+        self.embedding_store.delete_for_capability(
+            self.db, capability_id=capability_id, tenant_id=tenant_id
+        )
         self.db.delete(row)
         self.db.commit()
         return True
@@ -257,7 +259,9 @@ class CapabilityRegistry:
             raise ValueError(f"capability {capability_id!r} not found for tenant")
         cap = row_to_capability(row)
         # Delete existing embeddings for this capability
-        self.embedding_store.delete_for_capability(self.db, capability_id=capability_id)
+        self.embedding_store.delete_for_capability(
+            self.db, capability_id=capability_id, tenant_id=tenant_id
+        )
         count = self._generate_embeddings(row, cap)
         self.db.commit()
         return count

@@ -19,6 +19,7 @@ from typing import Any
 
 from sqlalchemy import (
     JSON,
+    Boolean,
     DateTime,
     Float,
     ForeignKey,
@@ -99,7 +100,9 @@ class ForecastRow(Base):
     model_mae: Mapped[float | None] = mapped_column(Float, nullable=True)
     model_rmse: Mapped[float | None] = mapped_column(Float, nullable=True)
     n_cutoffs: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    leakage_check_passed: Mapped[bool] = mapped_column(JSON, nullable=False, default=False)
+    leakage_check_passed: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
 
     # Full Pydantic payload
     payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
@@ -178,7 +181,9 @@ class BacktestResultRow(Base):
     n_cutoffs: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
     # Leakage check
-    leakage_detected: Mapped[bool] = mapped_column(JSON, nullable=False, default=False)
+    leakage_detected: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
     leaked_evidence_ids: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     # If leakage_detected=True, lists which evidence was published AFTER
     # the cutoff but was erroneously included.
@@ -192,7 +197,9 @@ class BacktestResultRow(Base):
 
     # Data used (hashes for reproducibility)
     data_points_used: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    data_cutoff_verified: Mapped[bool] = mapped_column(JSON, nullable=False, default=False)
+    data_cutoff_verified: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
 
     notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
 

@@ -16,6 +16,7 @@ from typing import Any
 
 from sqlalchemy import (
     JSON,
+    Boolean,
     DateTime,
     Float,
     ForeignKey,
@@ -65,7 +66,9 @@ class PublicationRow(Base):
     # Storyboard: {scenes, rights_manifest, asset_provenance, ...}
 
     # Quality gate
-    quality_gate_passed: Mapped[bool] = mapped_column(JSON, nullable=False, default=False)
+    quality_gate_passed: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
     quality_gate_issues: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
 
     # Deliverable type (per owner G07: distinguish research deliverable from coverage blocker)
@@ -73,7 +76,9 @@ class PublicationRow(Base):
     # research_deliverable | coverage_blocker_report
 
     # Download info
-    downloadable: Mapped[bool] = mapped_column(JSON, nullable=False, default=False)
+    downloadable: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
     download_format: Mapped[str | None] = mapped_column(String(20), nullable=True)
     # json | markdown | text
 
@@ -131,7 +136,9 @@ class PublicationClaimRow(Base):
     # Must reference real EvidenceItemRow IDs in the tenant's memory
 
     # Verification status
-    verified: Mapped[bool] = mapped_column(JSON, nullable=False, default=False)
+    verified: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
     verification_notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
 
     # Section reference (where in the publication this claim appears)

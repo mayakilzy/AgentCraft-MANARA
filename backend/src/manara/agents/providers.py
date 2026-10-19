@@ -52,8 +52,15 @@ class LLMProvider(Protocol):
         user_prompt: str,
         max_tokens: int = 2000,
         temperature: float = 0.7,
+        granted_tools: list[str] | None = None,
     ) -> LLMResponse:
-        """Generate a text completion."""
+        """Generate a text completion.
+
+        ``granted_tools`` is OPTIONAL — providers that support native
+        function-calling may use it to constrain the LLM's tool selection.
+        Providers that don't (e.g. MockProvider) emit ``TOOL_CALL:`` lines
+        in the response text, parsed by ``tool_executor.parse_tool_calls``.
+        """
         ...
 
 
@@ -82,10 +89,13 @@ class MockProvider:
         user_prompt: str,
         max_tokens: int = 2000,
         temperature: float = 0.7,
+        granted_tools: list[str] | None = None,
     ) -> LLMResponse:
         start = datetime.now(UTC)
         # Produce a deterministic response that reflects the task
-        response_text = self._generate_mock_response(system_prompt, user_prompt)
+        response_text = self._generate_mock_response(
+            system_prompt, user_prompt, granted_tools=granted_tools
+        )
         duration = (datetime.now(UTC) - start).total_seconds() * 1000
         return LLMResponse(
             text=response_text,
@@ -98,8 +108,18 @@ class MockProvider:
         )
 
     @staticmethod
-    def _generate_mock_response(system_prompt: str, user_prompt: str) -> str:
-        """Generate a structured mock response that reflects the role + task."""
+    def _generate_mock_response(
+        system_prompt: str,
+        user_prompt: str,
+        *,
+        granted_tools: list[str] | None = None,
+    ) -> str:
+        """Generate a structured mock response that reflects the role + task.
+
+        BACKEND-VERIFICATION-01: when ``granted_tools`` is provided, the mock
+        emits one ``TOOL_CALL:`` line per granted tool so the agent runtime
+        can exercise the ToolExecutor dispatch path.
+        """
         # Extract role from system prompt (look for "You are a ...")
         import re
 
@@ -133,6 +153,29 @@ class MockProvider:
             "WARNING: This is a MOCK response. No real LLM was called.",
             "Do NOT treat this as a verified specialist assessment.",
         ])
+
+        # BACKEND-VERIFICATION-01: emit one TOOL_CALL line per granted tool
+        # so the agent runtime can exercise the dispatch path.
+        if granted_tools:
+            response_parts.append("")
+            response_parts.append(
+                f"[MOCK tool-call section — granted_tools={granted_tools}]"
+            )
+            for tool_name in granted_tools:
+                if tool_name == "registry.search":
+                    response_parts.append(
+                        'TOOL_CALL: registry.search {"query": "prosthetics", "top_k": 5}'
+                    )
+                elif tool_name == "memory.search_prior":
+                    response_parts.append(
+                        'TOOL_CALL: memory.search_prior {"query": "robotic arm"}'
+                    )
+                elif tool_name == "foundry.search_openalex":
+                    response_parts.append(
+                        'TOOL_CALL: foundry.search_openalex {"query": "battery cost", "max_results": 5}'
+                    )
+                else:
+                    response_parts.append(f'TOOL_CALL: {tool_name} {{}}')
 
         return "\n".join(response_parts)
 
@@ -187,7 +230,13 @@ class ZAIProvider:
         user_prompt: str,
         max_tokens: int = 2000,
         temperature: float = 0.7,
+        granted_tools: list[str] | None = None,
     ) -> LLMResponse:
+        # granted_tools is accepted for protocol parity with MockProvider;
+        # the live LLM is expected to use function-calling / tool-use APIs
+        # native to the model rather than parse TOOL_CALL: lines from text.
+        # The implementation here is the text-completion path; tool dispatch
+        # happens in EphemeralAgentRuntime.execute() via the ToolExecutor.
         start = datetime.now(UTC)
         client = self._ensure_client()
 

@@ -259,13 +259,24 @@ class SafeHttpClient:
                 f"response size {content_length} exceeds {cfg.max_response_bytes} bytes",
             )
 
-        # Check content-type if expected
+        # Check content-type if expected. Per BACKEND-VERIFICATION-01:
+        # silent no-ops are forbidden — the caller explicitly asked for a
+        # content-type constraint, so a mismatch is now a hard failure.
+        # This is a defense against accidental ingestion of HTML error
+        # pages, binary blobs, or other unexpected responses that the
+        # connector would otherwise try to JSON-parse.
         if cfg.expected_content_types:
             ct = response.headers.get("content-type", "").lower()
             if not any(expected in ct for expected in cfg.expected_content_types):
-                # Be lenient — log but don't fail. Some APIs return text/json
-                # instead of application/json. The connector decides.
-                pass
+                response.close()
+                raise SsrfViolation(
+                    "unexpected_content_type",
+                    url,
+                    (
+                        f"response content-type {ct!r} does not match any of "
+                        f"expected {cfg.expected_content_types!r}"
+                    ),
+                )
 
         return response
 
