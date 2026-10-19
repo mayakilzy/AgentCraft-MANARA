@@ -18,6 +18,13 @@ export default defineConfig({
       "/health": "http://localhost:8000",
       "/discovery": "http://localhost:8000",
       "/contracts": "http://localhost:8000",
+      "/registry": "http://localhost:8000",
+      "/foundry": "http://localhost:8000",
+      "/memory": "http://localhost:8000",
+      "/mold-factory": "http://localhost:8000",
+      "/agents": "http://localhost:8000",
+      "/foresight": "http://localhost:8000",
+      "/publishing": "http://localhost:8000",
     },
   },
 });

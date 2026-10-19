@@ -122,44 +122,18 @@ def compose_mold(
 
     Per owner (G09-R1):
     > "أنشئ InvestigationRow حقيقياً بمعرّف ثابت عند بدء التحقيق."
-    > "اربطه بالقالب الناتج."
 
-    If no investigation_id is provided, a new InvestigationRow is created
-    automatically and linked to the mold. This ensures every mold has a
-    real investigation backing it — no null IDs, no fallbacks.
+    The MoldArchitect is the SOLE owner of InvestigationRow creation.
+    If investigation_id is not provided, the architect creates one
+    automatically. The API layer does NOT duplicate this logic.
     """
     tenant_id = _resolve_tenant()
-
-    # G09-R1: Create a real InvestigationRow if none provided
-    investigation_id = req.investigation_id
-    if not investigation_id:
-        import secrets as _secrets
-
-        from manara.db.models import InvestigationRow as _InvRow
-        investigation_id = f"inv-{_secrets.token_hex(8)}"
-        inv_row = _InvRow(
-            id=investigation_id,
-            tenant_id=tenant_id,
-            user_id="web-user",
-            state="received",
-            topic=req.query[:500],
-            payload={
-                "id": investigation_id,
-                "tenant_id": tenant_id,
-                "user_id": "web-user",
-                "scope": {"topic": req.query},
-                "state": "received",
-            },
-        )
-        db.add(inv_row)
-        db.commit()
-
     architect = MoldArchitect(db)
     try:
         result = architect.compose_mold(
             req.query,
             tenant_id=tenant_id,
-            investigation_id=investigation_id,
+            investigation_id=req.investigation_id,
             domain_hint=req.domain_hint,
         )
     except Exception as e:

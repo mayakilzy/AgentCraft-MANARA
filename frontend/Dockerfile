@@ -1,10 +1,10 @@
-# MANARA frontend image — DEVELOPMENT ONLY.
+# MANARA frontend image — Staging-ready.
 
 FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package.json package-lock.json* ./
+COPY package.json ./
 RUN npm install
 
 COPY . .
