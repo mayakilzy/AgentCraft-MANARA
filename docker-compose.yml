@@ -1,19 +1,12 @@
 # MANARA — Docker Compose (Staging)
 #
 # Staging-ready configuration with PostgreSQL + pgvector.
+#
 # Usage:
-#   docker compose up -d
-#   docker compose exec backend alembic upgrade head
-#   docker compose exec backend python -c "
-#     from manara.registry import SEED_CAPABILITIES, CapabilityRegistry
-#     from manara.db.session import get_session_factory
-#     SessionLocal = get_session_factory()
-#     with SessionLocal() as db:
-#         reg = CapabilityRegistry(db)
-#         for cap in SEED_CAPABILITIES:
-#             try: reg.create_capability(cap, tenant_id='tenant_demo')
-#             except: pass
-#   "
+#   1. Copy .env.example to .env and edit values
+#   2. docker compose up -d
+#   3. docker compose exec backend alembic upgrade head
+#   4. curl -X POST http://localhost:8000/registry/capabilities/seed
 #
 # Access:
 #   Frontend: http://localhost:5173
@@ -24,15 +17,15 @@ services:
   postgres:
     image: pgvector/pgvector:pg16
     environment:
-      POSTGRES_USER: manara
-      POSTGRES_PASSWORD: CHANGE_ME_IN_STAGING
-      POSTGRES_DB: manara
+      POSTGRES_USER: ${POSTGRES_USER:-manara}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME_IN_STAGING}
+      POSTGRES_DB: ${POSTGRES_DB:-manara}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U manara -d manara"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-manara} -d ${POSTGRES_DB:-manara}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -42,17 +35,17 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     environment:
-      MANARA_ENV: staging
-      DATABASE_URL: postgresql+psycopg://manara:CHANGE_ME_IN_STAGING@postgres:5432/manara
-      MANARA_DISCOVERY_MODE: synthetic
-      MANARA_SINGLE_TENANT_DEMO: "true"
-      MANARA_DEFAULT_TENANT_ID: tenant_demo
+      MANARA_ENV: ${MANARA_ENV:-staging}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-manara}:${POSTGRES_PASSWORD:-CHANGE_ME_IN_STAGING}@postgres:5432/${POSTGRES_DB:-manara}
+      MANARA_DISCOVERY_MODE: ${MANARA_DISCOVERY_MODE:-synthetic}
+      MANARA_SINGLE_TENANT_DEMO: ${MANARA_SINGLE_TENANT_DEMO:-true}
+      MANARA_DEFAULT_TENANT_ID: ${MANARA_DEFAULT_TENANT_ID:-tenant_demo}
       SENTENCE_TRANSFORMERS_HOME: /app/.models
       HF_HOME: /app/.models/hf_cache
-      # Uncomment for live LLM:
-      # MANARA_ZAI_API_KEY: your-key-here
-      # Uncomment for reliable OpenAlex search:
-      # MANARA_OPENALEX_API_KEY: your-key-here
+      MANARA_ZAI_API_KEY: ${MANARA_ZAI_API_KEY:-}
+      MANARA_OPENALEX_API_KEY: ${MANARA_OPENALEX_API_KEY:-}
+      MANARA_OBJECT_STORE: ${MANARA_OBJECT_STORE:-local}
+      MANARA_S3_BUCKET: ${MANARA_S3_BUCKET:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -64,13 +57,15 @@ services:
     command: >
       sh -c "
         alembic upgrade head &&
-        uvicorn manara.app:create_app --factory --host 0.0.0.0 --port 8000 --reload
+        uvicorn manara.app:create_app --factory --host 0.0.0.0 --port 8000
       "
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    environment:
+      VITE_API_TARGET: http://backend:8000
     ports:
       - "5173:5173"
     depends_on:
