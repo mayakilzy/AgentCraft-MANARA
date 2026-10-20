@@ -3,11 +3,13 @@
 Endpoints:
 * ``POST   /foresight/assess``          — assess evidence and recommend method
 * ``POST   /foresight/forecasts``        — create a draft forecast
+* ``GET    /foresight/forecasts``        — list forecasts (tenant-scoped)
 * ``POST   /foresight/forecasts/{id}/publish`` — publish (immutable)
 * ``POST   /foresight/forecasts/{id}/revise`` — create a revision
 * ``POST   /foresight/forecasts/{id}/try-modify`` — test immutability
-* ``POST   /foresight/backtest``          — run a backtest with leakage check
 * ``GET    /foresight/forecasts/{id}``    — fetch a forecast
+* ``GET    /foresight/forecasts/{id}/backtests`` — list backtest history
+* ``POST   /foresight/backtest``          — run a backtest with leakage check
 """
 
 from __future__ import annotations
@@ -15,12 +17,14 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from manara.api.errors import NotFoundError, ValidationError
 from manara.config import settings
+from manara.db.foresight_models import BacktestResultRow, ForecastRow
 from manara.db.session import get_db
 from manara.foresight import (
     BacktestEngine,
@@ -130,6 +134,61 @@ def create_forecast(req: CreateForecastRequest, db: Session = Depends(get_db)) -
     except ValueError as e:
         raise ValidationError(str(e)) from e
     return {"forecast_id": row.id, "status": row.status, "method": row.method}
+
+
+@router.get(
+    "/forecasts",
+    summary="List forecasts (tenant-scoped)",
+)
+def list_forecasts(
+    db: Session = Depends(get_db),
+    investigation_id: str | None = Query(
+        default=None,
+        description="Optional filter by investigation_id",
+    ),
+    status: str | None = Query(
+        default=None,
+        description="Optional filter by status (draft|published|superseded)",
+    ),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+) -> list[dict[str, Any]]:
+    """List forecasts for the current tenant (R-06 / G-list-3).
+
+    Supports optional filtering by investigation_id and status. Returns
+    persisted forecast summaries ordered by ``created_at`` DESC (newest
+    first). Tenant isolation is enforced.
+
+    The ``draft``, ``published``, and ``superseded`` status semantics are
+    preserved verbatim from the persistence layer. No recalculation;
+    no immutability bypass.
+    """
+    tenant_id = _resolve_tenant()
+    stmt = select(ForecastRow).where(ForecastRow.tenant_id == tenant_id)
+    if investigation_id:
+        stmt = stmt.where(ForecastRow.investigation_id == investigation_id)
+    if status:
+        stmt = stmt.where(ForecastRow.status == status)
+    stmt = stmt.order_by(ForecastRow.created_at.desc()).limit(limit).offset(offset)
+    rows = list(db.execute(stmt).scalars())
+    return [
+        {
+            "id": r.id,
+            "status": r.status,
+            "method": r.method,
+            "target": r.target,
+            "metric": r.metric,
+            "unit": r.unit,
+            "point_estimate": r.point_estimate,
+            "cutoff_date": r.cutoff_date.isoformat() if r.cutoff_date else None,
+            "issue_date": r.issue_date.isoformat() if r.issue_date else None,
+            "investigation_id": r.investigation_id,
+            "subsequent_revision_of": r.subsequent_revision_of,
+            "superseded_by": r.superseded_by,
+            "created_at": r.created_at.isoformat(),
+        }
+        for r in rows
+    ]
 
 
 @router.post("/forecasts/{forecast_id}/publish", summary="Publish a forecast (immutable)")
@@ -244,7 +303,76 @@ def get_forecast(forecast_id: str, db: Session = Depends(get_db)) -> dict[str, A
         "superseded_by": row.superseded_by,
         "assumptions": row.assumptions,
         "scenarios": row.scenarios,
+        # R-03 (MANARA-UI-BACKEND-CLOSURE-01): expose the persisted
+        # probability_distribution. Empty dict when method="insufficient_evidence"
+        # (the engine refuses to fabricate probabilities in that case).
+        # This is the actual stored value — no fabrication, no confidence
+        # intervals invented client-side.
+        "probability_distribution": row.probability_distribution or {},
     }
+
+
+@router.get(
+    "/forecasts/{forecast_id}/backtests",
+    summary="List backtest history for a forecast (tenant-scoped)",
+)
+def list_backtests(
+    forecast_id: str,
+    db: Session = Depends(get_db),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+) -> list[dict[str, Any]]:
+    """List backtest records for a forecast (R-07 / G-list-4).
+
+    Returns persisted ``BacktestResultRow`` rows associated with the
+    forecast. Tenant isolation is enforced. The parent forecast must
+    belong to the current tenant (otherwise 404).
+
+    The response preserves all available measurements:
+    - ``mae``, ``rmse``, ``baseline_mae``, ``improvement_over_baseline``
+    - ``leakage_detected``, ``data_cutoff_verified``
+    - ``leaked_evidence_ids`` (where recorded)
+    - ``data_points_used``
+
+    Negative ``improvement_over_baseline`` values are preserved (they
+    indicate the forecast performed WORSE than the baseline). No
+    recalculation; this is a pure read of historical results.
+    """
+    tenant_id = _resolve_tenant()
+    # Verify the parent forecast exists and belongs to the tenant.
+    registry = ForecastRegistry(db)
+    parent = registry.get_forecast(forecast_id, tenant_id=tenant_id)
+    if parent is None:
+        raise NotFoundError(f"forecast {forecast_id} not found")
+
+    stmt = (
+        select(BacktestResultRow)
+        .where(
+            BacktestResultRow.tenant_id == tenant_id,
+            BacktestResultRow.forecast_id == forecast_id,
+        )
+        .order_by(BacktestResultRow.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    rows = list(db.execute(stmt).scalars())
+    return [
+        {
+            "id": r.id,
+            "forecast_id": r.forecast_id,
+            "leakage_detected": r.leakage_detected,
+            "leaked_evidence_ids": r.leaked_evidence_ids,
+            "mae": r.mae,
+            "rmse": r.rmse,
+            "baseline_mae": r.baseline_mae,
+            "improvement_over_baseline": r.improvement_over_baseline,
+            "data_points_used": r.data_points_used,
+            "data_cutoff_verified": r.data_cutoff_verified,
+            "notes": r.notes,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in rows
+    ]
 
 
 __all__ = ["router"]

@@ -5,14 +5,15 @@ Endpoints:
 * ``GET    /memory/evidence/{id}``                     — fetch one evidence item
 * ``GET    /memory/investigations/{id}/evidence``      — list evidence in an investigation
 * ``POST   /memory/evidence/{id}/claims``             — attach a claim
-* ``POST   /memory/claims/{id}/support``               — add supports/refutes edge
+* ``POST   /memory/claims/{id}/support``               — add supports/refutes edge (write)
+* ``GET    /memory/investigations/{id}/edges``         — list claim↔evidence edges (read)
 * ``PATCH  /memory/claims/{id}/verdict``               — promote verdict (with audit)
 * ``GET    /memory/investigations/{id}/claims``        — list claims in an investigation
 * ``POST   /memory/investigations/{id}/search-prior``  — search prior memory for reuse
 * ``POST   /memory/investigations/{id}/reuse``         — record a reuse link
 * ``GET    /memory/investigations/{id}/decisions``     — audit log for an investigation
 * ``POST   /memory/snapshots``                         — capture a source snapshot
-* ``GET    /memory/investigations/{id}/at-cutoff``     — bitemporal replay (no future leakage)
+* ``POST   /memory/investigations/{id}/at-cutoff``     — bitemporal replay (no future leakage)
 """
 
 from __future__ import annotations
@@ -30,6 +31,7 @@ from manara.config import settings
 from manara.contracts import Evidence as EvidenceContract
 from manara.db.memory_models import (
     ClaimRow,
+    ClaimSupportEdgeRow,
     EvidenceItemRow,
     MemoryDecisionRow,
 )
@@ -362,6 +364,68 @@ def list_claims(
             "verdict": r.verdict,
             "independence_group": r.independence_group,
             "superseded_by": r.superseded_by,
+        }
+        for r in rows
+    ]
+
+
+@router.get(
+    "/investigations/{investigation_id}/edges",
+    summary="List claim↔evidence edges in an investigation (Knowledge Graph read path)",
+)
+def list_edges(
+    investigation_id: str,
+    db: Session = Depends(get_db),
+    relation: str | None = Query(
+        default=None,
+        description="Optional filter: supports | refutes | qualifies",
+    ),
+    limit: int = Query(default=200, ge=1, le=1000),
+) -> list[dict[str, Any]]:
+    """Return all persisted ``ClaimSupportEdgeRow`` rows for an investigation.
+
+    Per MANARA-UI-BACKEND-CLOSURE-01 / R-01 (closes audit gap D-05):
+    the UI needs a read path for the claim↔evidence graph. Edges are
+    persisted on the write side via ``POST /memory/claims/{id}/support``;
+    this endpoint exposes them on the read side.
+
+    The response preserves contradictions: ``supports`` and ``refutes``
+    edges on the same claim are NEVER collapsed. Both sides are returned.
+
+    Tenant isolation: edges belonging to other tenants are never exposed.
+
+    Deterministic ordering: by ``edge_id`` ascending (insertion order).
+
+    Empty list: an investigation with no edges returns ``[]`` (not 404).
+    The investigation itself is not verified to exist here; the empty
+    list is the honest answer when no edges have been written.
+    """
+    tenant_id = _resolve_tenant()
+
+    # Join ClaimSupportEdgeRow → ClaimRow to filter by investigation_id.
+    # ClaimSupportEdgeRow has no investigation_id column directly; we
+    # traverse via ClaimRow.investigation_id. This avoids N+1 queries.
+    stmt = (
+        select(ClaimSupportEdgeRow)
+        .join(ClaimRow, ClaimSupportEdgeRow.claim_id == ClaimRow.id)
+        .where(
+            ClaimSupportEdgeRow.tenant_id == tenant_id,
+            ClaimRow.investigation_id == investigation_id,
+        )
+    )
+    if relation:
+        stmt = stmt.where(ClaimSupportEdgeRow.relation == relation)
+    stmt = stmt.order_by(ClaimSupportEdgeRow.id.asc()).limit(limit)
+    rows = list(db.execute(stmt).scalars())
+    return [
+        {
+            "edge_id": r.id,
+            "claim_id": r.claim_id,
+            "evidence_id": r.evidence_id,
+            "relation": r.relation,
+            "weight": r.weight,
+            "notes": r.notes,
+            "created_at": r.created_at.isoformat(),
         }
         for r in rows
     ]

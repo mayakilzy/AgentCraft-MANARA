@@ -5,7 +5,13 @@ Endpoints:
 * ``GET    /publishing/publications``             — list publications
 * ``GET    /publishing/publications/{id}``        — fetch one publication
 * ``GET    /publishing/publications/{id}/download`` — download (json/markdown/text)
-* ``GET    /publishing/publications/{id}/quality-gate`` — quality gate result
+
+Note (MANARA-UI-BACKEND-CLOSURE-01 / R-09):
+The previously-advertised ``GET /publishing/publications/{id}/quality-gate``
+endpoint is NOT implemented as a separate route. The quality-gate result
+(``quality_gate_passed`` + ``quality_gate_issues``) is already embedded
+in the ``GET /publishing/publications/{id}`` response. The misleading
+advertisement has been removed from this docstring.
 """
 
 from __future__ import annotations
