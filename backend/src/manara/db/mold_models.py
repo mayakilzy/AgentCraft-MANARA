@@ -94,6 +94,22 @@ class MoldRecipeRow(Base):
     # The full Pydantic contract payload
     payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
 
+    # FIX-01 (MANARA-UI-BACKEND-CLOSURE-02): the persisted
+    # MoldCompositionResult so the Mold Blueprint can be reconstructed
+    # after page reload without re-running POST /mold-factory/compose.
+    # Nullable for backwards compatibility: molds persisted before
+    # migration 0008 have NULL here, and the read path signals
+    # ``composition_details_available=false`` honestly.
+    # The stored shape mirrors MoldCompositionResult.to_dict() minus the
+    # fields already on the row (query, tenant_id, investigation_id,
+    # mold_recipe_id, mold). It carries: detected_needs[], coverage[],
+    # gaps[], is_complete, is_catalog_complete, deliverable_type,
+    # is_unknown_domain, detection_reasoning, composition_notes,
+    # composed_at.
+    composition_result_json: Mapped[dict[str, Any] | None] = mapped_column(
+        JSON, nullable=True, default=None
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False
     )

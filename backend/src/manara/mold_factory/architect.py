@@ -508,7 +508,7 @@ class MoldArchitect:
             f"deliverable_type={deliverable_type}."
         )
 
-        return MoldCompositionResult(
+        result = MoldCompositionResult(
             query=query, tenant_id=tenant_id,
             investigation_id=investigation_id,
             is_unknown_domain=True,
@@ -521,6 +521,59 @@ class MoldArchitect:
             deliverable_type=deliverable_type,
             composition_notes=composition_notes,
         )
+
+        # FIX-01 (MANARA-UI-BACKEND-CLOSURE-02): persist the full
+        # composition result on the mold row so the Mold Blueprint can
+        # be reconstructed after page reload without re-running compose.
+        # We store a trimmed view (the fields the UI needs for the
+        # blueprint) — not the full to_dict() (which would duplicate
+        # query, tenant_id, investigation_id, mold_recipe_id, mold that
+        # are already on the row or in payload).
+        mold_row.composition_result_json = {
+            "detected_needs": [
+                {
+                    "need": d.need,
+                    "label_en": d.label_en,
+                    "label_ar": d.label_ar,
+                    "relevance": d.relevance,
+                }
+                for d in result.detected_needs
+            ],
+            "coverage": [
+                {
+                    "need": c.need,
+                    "need_label": c.need_label,
+                    "selected_capability_id": c.selected_capability_id,
+                    "coverage_level": c.coverage_level.value,
+                    "connector_ids": list(c.connector_ids),
+                    "selection_reasoning": c.selection_reasoning,
+                    "operational_gap_recorded": c.operational_gap_recorded,
+                }
+                for c in result.coverage
+            ],
+            "gaps": [
+                {
+                    "need": g.need,
+                    "need_label": g.need_label,
+                    "foundry_resolution": g.foundry_resolution,
+                    "resolution_notes": g.resolution_notes,
+                    "catalog_capability_id": g.catalog_capability_id,
+                    "coverage_level": g.coverage_level.value,
+                }
+                for g in result.gaps
+            ],
+            "is_complete": result.is_complete,
+            "is_catalog_complete": result.is_catalog_complete,
+            "deliverable_type": result.deliverable_type,
+            "is_unknown_domain": result.is_unknown_domain,
+            "detection_reasoning": result.detection_reasoning,
+            "composition_notes": result.composition_notes,
+            "composed_at": result.composed_at.isoformat(),
+        }
+        self.db.add(mold_row)
+        self.db.commit()
+
+        return result
 
     # ── Coverage level check (the G04-R1 core) ─────────────────────────────────
 

@@ -325,11 +325,29 @@ def list_molds(
     summary="Fetch one mold recipe (tenant-scoped)",
 )
 def get_mold(mold_id: str, db: Session = Depends(get_db)) -> dict[str, Any]:
+    """Fetch one mold recipe + persisted composition details.
+
+    FIX-01 (MANARA-UI-BACKEND-CLOSURE-02): the response now carries a
+    ``composition_result`` field when the mold was composed after
+    migration 0008. The field mirrors the trimmed MoldCompositionResult
+    (detected_needs, coverage, gaps, is_complete, is_catalog_complete,
+    deliverable_type, is_unknown_domain, detection_reasoning,
+    composition_notes, composed_at) so the UI can reconstruct the Mold
+    Blueprint after page reload without re-running POST /compose.
+
+    For molds persisted before migration 0008, the field is NULL and
+    ``composition_details_available=false`` is returned honestly.
+    The UI must NOT fabricate missing data.
+    """
     tenant_id = _resolve_tenant()
     row = db.get(MoldRecipeRow, mold_id)
     if row is None or row.tenant_id != tenant_id:
         raise NotFoundError(f"mold {mold_id} not found for tenant")
-    return row.payload
+    response: dict[str, Any] = dict(row.payload)
+    # Add the persisted composition details (FIX-01)
+    response["composition_details_available"] = row.composition_result_json is not None
+    response["composition_result"] = row.composition_result_json
+    return response
 
 
 @router.patch(

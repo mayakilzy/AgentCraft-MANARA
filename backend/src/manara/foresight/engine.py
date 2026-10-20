@@ -329,6 +329,13 @@ class BacktestEngine:
         4. Train on before-cutoff data only.
         5. Compare forecast against actual after-cutoff values.
         6. Compute MAE/RMSE for both model and baseline.
+
+        FIX-03 (MANARA-UI-BACKEND-CLOSURE-02): all backtest attempts
+        are now persisted, including the 3 early-return paths (leakage,
+        insufficient training data, no post-cutoff actuals). Failed
+        attempts have NULL mae/rmse/baseline_mae/baseline_rmse/
+        improvement_over_baseline — these metrics are NEVER fabricated.
+        The ``notes`` field distinguishes the failure reason.
         """
         before: list[DataPoint] = []
         after: list[DataPoint] = []
@@ -352,7 +359,7 @@ class BacktestEngine:
         # ── Leakage check ───────────────────────────────────────────────────
         leakage_detected = len(leaked) > 0
         if leakage_detected:
-            return BacktestResult(
+            result = BacktestResult(
                 cutoff_date=cutoff_date,
                 backtest_horizon_days=horizon_days,
                 n_cutoffs=1,
@@ -373,10 +380,16 @@ class BacktestEngine:
                     f"Backtest FAILED due to leakage."
                 ),
             )
+            self._persist_backtest_result(
+                tenant_id=tenant_id,
+                forecast_id=forecast_id,
+                result=result,
+            )
+            return result
 
         # ── Train on before-cutoff data ────────────────────────────────────
         if len(before) < 2:
-            return BacktestResult(
+            result = BacktestResult(
                 cutoff_date=cutoff_date,
                 backtest_horizon_days=horizon_days,
                 n_cutoffs=1,
@@ -391,6 +404,12 @@ class BacktestEngine:
                 data_cutoff_verified=True,
                 notes="Insufficient data before cutoff for backtest.",
             )
+            self._persist_backtest_result(
+                tenant_id=tenant_id,
+                forecast_id=forecast_id,
+                result=result,
+            )
+            return result
 
         # Sort by timestamp
         before_sorted = sorted(before, key=lambda d: d.timestamp)
@@ -404,7 +423,7 @@ class BacktestEngine:
         # Actual values after cutoff
         actual_values = [dp.value for dp in after_sorted]
         if not actual_values:
-            return BacktestResult(
+            result = BacktestResult(
                 cutoff_date=cutoff_date,
                 backtest_horizon_days=horizon_days,
                 n_cutoffs=1,
@@ -417,6 +436,12 @@ class BacktestEngine:
                 data_cutoff_verified=True,
                 notes="No actual values after cutoff to evaluate against.",
             )
+            self._persist_backtest_result(
+                tenant_id=tenant_id,
+                forecast_id=forecast_id,
+                result=result,
+            )
+            return result
 
         # Compute errors
         model_preds = [model_forecast] * len(actual_values)
@@ -429,42 +454,67 @@ class BacktestEngine:
 
         improvement = (b_mae - mae) / b_mae if b_mae > 0 else 0.0
 
-        # Persist the backtest result
+        result = BacktestResult(
+            cutoff_date=cutoff_date,
+            backtest_horizon_days=horizon_days,
+            n_cutoffs=1,
+            leakage_detected=False,
+            leaked_evidence_ids=[],
+            mae=mae,
+            rmse=rmse,
+            baseline_mae=b_mae,
+            baseline_rmse=b_rmse,
+            improvement_over_baseline=improvement,
+            data_points_used=len(before),
+            data_cutoff_verified=True,
+            notes=f"Backtest passed. Model MAE={mae:.4f}, Baseline MAE={b_mae:.4f}.",
+        )
+        self._persist_backtest_result(
+            tenant_id=tenant_id,
+            forecast_id=forecast_id,
+            result=result,
+        )
+        return result
+
+    def _persist_backtest_result(
+        self,
+        *,
+        tenant_id: str,
+        forecast_id: str,
+        result: BacktestResult,
+    ) -> BacktestResultRow:
+        """Persist a BacktestResult row (FIX-03).
+
+        Used for BOTH successful and failed backtest attempts. Failed
+        attempts carry NULL mae/rmse/baseline_mae/baseline_rmse/
+        improvement_over_baseline — these metrics are NEVER fabricated.
+
+        The ``notes`` field distinguishes the outcome:
+        - "Backtest passed. ..." — successful quantitative evaluation.
+        - "LEAKAGE DETECTED: ..." — temporal leakage failure.
+        - "Insufficient data before cutoff for backtest." — too few training points.
+        - "No actual values after cutoff to evaluate against." — no evaluation data.
+        """
         bt_row = BacktestResultRow(
             tenant_id=tenant_id,
             forecast_id=forecast_id,
-            cutoff_date=cutoff_date,
-            backtest_horizon_days=horizon_days,
-            n_cutoffs=1,
-            leakage_detected=False,
-            leaked_evidence_ids=[],
-            mae=mae,
-            rmse=rmse,
-            baseline_mae=b_mae,
-            baseline_rmse=b_rmse,
-            improvement_over_baseline=improvement,
-            data_points_used=len(before),
-            data_cutoff_verified=True,
-            notes=f"Backtest passed. Model MAE={mae:.4f}, Baseline MAE={b_mae:.4f}.",
+            cutoff_date=result.cutoff_date,
+            backtest_horizon_days=result.backtest_horizon_days,
+            n_cutoffs=result.n_cutoffs,
+            leakage_detected=result.leakage_detected,
+            leaked_evidence_ids=result.leaked_evidence_ids,
+            mae=result.mae,
+            rmse=result.rmse,
+            baseline_mae=result.baseline_mae,
+            baseline_rmse=result.baseline_rmse,
+            improvement_over_baseline=result.improvement_over_baseline,
+            data_points_used=result.data_points_used,
+            data_cutoff_verified=result.data_cutoff_verified,
+            notes=result.notes,
         )
         self.db.add(bt_row)
         self.db.commit()
-
-        return BacktestResult(
-            cutoff_date=cutoff_date,
-            backtest_horizon_days=horizon_days,
-            n_cutoffs=1,
-            leakage_detected=False,
-            leaked_evidence_ids=[],
-            mae=mae,
-            rmse=rmse,
-            baseline_mae=b_mae,
-            baseline_rmse=b_rmse,
-            improvement_over_baseline=improvement,
-            data_points_used=len(before),
-            data_cutoff_verified=True,
-            notes=f"Backtest passed. Model MAE={mae:.4f}, Baseline MAE={b_mae:.4f}.",
-        )
+        return bt_row
 
     def check_evidence_leakage(
         self,

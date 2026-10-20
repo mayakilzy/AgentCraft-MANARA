@@ -828,7 +828,27 @@ def create_clinical_prosthetics_reviewer_recipe(
 
 
 def create_general_analyst_recipe(*, tenant_id: str) -> AgentRecipe:
-    """Create the General Analyst recipe (always available, never retires)."""
+    """Create the General Analyst recipe (default, on-demand).
+
+    FIX-02 (MANARA-UI-BACKEND-CLOSURE-02): the previous implementation
+    set ``state=AgentState.MAINTAINED`` without satisfying the
+    contract's ``tests.last_evaluation_outcome`` + ``security_review``
+    requirements for the ``maintained`` state. That caused
+    ``POST /agents/recipes/seed-generalist`` to fail with a 422
+    validation error.
+
+    The honest fix is to ship the General Analyst in the ``on_demand``
+    state — the same state the Clinical Prosthetics Reviewer ships in.
+    The General Analyst has NOT undergone formal evaluation nor a
+    security review in the sandbox; claiming ``maintained`` would be
+    dishonest. When the owner approves a formal evaluation + security
+    review, the recipe can be promoted to ``tested`` then
+    ``maintained`` via the (currently unimplemented) recipe-promotion
+    endpoint or a direct DB update.
+
+    Per mission directive: "Do not bypass validation. Do not fabricate
+    a successful evaluation merely to justify the MAINTAINED state."
+    """
     return AgentRecipe(
         id="agent.general-analyst-v1",
         version="0.1.0",
@@ -866,7 +886,9 @@ def create_general_analyst_recipe(*, tenant_id: str) -> AgentRecipe:
         user_prompt_template=None,
         output_template={},
         model_compatibility=["zai:glm-4.6", "openai:gpt-4o", "mock"],
-        state=AgentState.MAINTAINED,  # Generalist is always maintained
+        # FIX-02: on_demand (not maintained) until formal evaluation +
+        # security review are completed. See docstring above.
+        state=AgentState.ON_DEMAND,
         retention=AgentRetentionPolicy(
             repeat_demand_score=1.0,
             economic_value_score=0.5,
