@@ -1,269 +1,236 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================
+   MANARA — Design System Tokens
+   "Modern Knowledge Studio" — editorial, calm, lighthouse-themed
+   ============================================================ */
+
+@theme inline {
+  --color-background: var(--manara-canvas);
+  --color-foreground: var(--manara-ink);
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-ibm-mono), ui-monospace, monospace;
+  --font-serif: var(--font-source-serif), Georgia, serif;
+  --font-arabic: var(--font-ibm-arabic), "IBM Plex Sans Arabic", system-ui, sans-serif;
+
+  /* Sidebar tokens */
+  --color-sidebar: var(--manara-ink);
+  --color-sidebar-foreground: var(--manara-canvas);
+  --color-sidebar-border: rgba(247, 248, 246, 0.08);
+  --color-sidebar-accent: rgba(44, 115, 128, 0.18);
+  --color-sidebar-accent-foreground: var(--manara-canvas);
+
+  /* shadcn-compat tokens (mapped to MANARA palette) */
+  --color-card: var(--manara-white);
+  --color-card-foreground: var(--manara-ink);
+  --color-popover: var(--manara-white);
+  --color-popover-foreground: var(--manara-ink);
+  --color-primary: var(--manara-teal);
+  --color-primary-foreground: var(--manara-white);
+  --color-secondary: var(--manara-mist);
+  --color-secondary-foreground: var(--manara-ink);
+  --color-muted: var(--manara-mist);
+  --color-muted-foreground: var(--manara-ink-muted);
+  --color-accent: var(--manara-mist);
+  --color-accent-foreground: var(--manara-ink);
+  --color-destructive: var(--manara-error);
+  --color-border: var(--manara-mist);
+  --color-input: var(--manara-mist);
+  --color-ring: var(--manara-teal);
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+}
+
 :root {
-  --bg: #0f1419;
-  --panel: #1a2027;
-  --panel-2: #232b35;
-  --text: #e6e6e6;
-  --text-muted: #8a94a4;
-  --accent: #4ec9b0;
-  --accent-warm: #d19a66;
-  --danger: #d46767;
-  --border: #2c3540;
-  --font-ar: "Segoe UI", "Noto Sans Arabic", "Tahoma", sans-serif;
-  --font-mono: "SFMono-Regular", "Cascadia Code", "Consolas", monospace;
+  /* MANARA palette — porcelain, navy, teal, brass */
+  --manara-canvas: #F7F8F6;
+  --manara-ink: #19334A;
+  --manara-teal: #2C7380;
+  --manara-teal-dark: #1F5560;
+  --manara-brass: #BB9362;
+  --manara-mist: #E8EFF1;
+  --manara-ink-light: #4A6580;
+  --manara-ink-muted: #8A9BA8;
+  --manara-white: #FFFFFF;
+  --manara-error: #C44545;
+  --manara-success: #3A8A5C;
+  --manara-warning: #C49445;
+
+  /* Coverage tier colors */
+  --coverage-none: #C44545;
+  --coverage-none-bg: #FBE9E9;
+  --coverage-catalog: #D97706;
+  --coverage-catalog-bg: #FCF1E0;
+  --coverage-operational: #B9831A;
+  --coverage-operational-bg: #FBF3DD;
+  --coverage-verified: #3A8A5C;
+  --coverage-verified-bg: #E5F2EB;
+
+  --radius: 0.5rem;
+  --shadow-soft: 0 1px 3px rgba(25, 51, 74, 0.08);
+  --shadow-soft-lg: 0 4px 16px rgba(25, 51, 74, 0.10);
+  --shadow-elevated: 0 12px 32px rgba(25, 51, 74, 0.14);
 }
 
-* {
-  box-sizing: border-box;
+/* Dark mode is intentionally minimal — MANARA is an editorial light canvas.
+   The .dark class still maps cleanly to the porcelain palette to remain
+   compatible with shadcn internals that toggle .dark. */
+.dark {
+  --manara-canvas: #F7F8F6;
+  --manara-ink: #19334A;
+  --manara-teal: #2C7380;
+  --manara-brass: #BB9362;
+  --manara-mist: #E8EFF1;
+  --manara-ink-light: #4A6580;
+  --manara-ink-muted: #8A9BA8;
+  --manara-white: #FFFFFF;
+  --manara-error: #C44545;
+  --manara-success: #3A8A5C;
+  --manara-warning: #C49445;
 }
 
-html,
-body {
-  margin: 0;
-  padding: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-ar);
-  font-size: 15px;
-  line-height: 1.6;
-  direction: rtl;
+@layer base {
+  * {
+    @apply border-border;
+    border-color: var(--manara-mist);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--manara-canvas);
+    color: var(--manara-ink);
+    font-family: var(--font-inter), system-ui, sans-serif;
+    font-feature-settings: "cv11", "ss01", "ss03";
+    line-height: 1.55;
+  }
+
+  /* RTL — apply Arabic font family + direction */
+  [dir="rtl"] body,
+  [dir="rtl"] .font-ui,
+  [dir="rtl"] .font-sans {
+    font-family: var(--font-ibm-arabic), "IBM Plex Sans Arabic", system-ui, sans-serif;
+  }
+
+  [dir="rtl"] .font-serif {
+    font-family: var(--font-ibm-arabic), "IBM Plex Sans Arabic", Georgia, serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-source-serif), Georgia, serif;
+    color: var(--manara-ink);
+    letter-spacing: -0.01em;
+  }
+
+  [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3,
+  [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6 {
+    letter-spacing: 0;
+  }
+
+  ::selection {
+    background: rgba(44, 115, 128, 0.18);
+    color: var(--manara-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--manara-teal);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }
 
-a {
-  color: var(--accent);
+/* ============================================================
+   Custom scrollbar styling — for long lists
+   ============================================================ */
+.manara-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
-
-.app {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 32px 24px 96px;
+.manara-scroll::-webkit-scrollbar-track {
+  background: transparent;
 }
-
-.app__header {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 16px;
-  margin-bottom: 32px;
-}
-
-.app__title {
-  font-size: 28px;
-  font-weight: 700;
-  margin: 0 0 4px 0;
-  letter-spacing: 0.3px;
-}
-
-.app__subtitle {
-  color: var(--text-muted);
-  font-size: 14px;
-  margin: 0;
-}
-
-.app__title .accent {
-  color: var(--accent);
-}
-
-.panel {
-  background: var(--panel);
-  border: 1px solid var(--border);
+.manara-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(138, 155, 168, 0.35);
   border-radius: 8px;
-  padding: 20px 24px;
-  margin-bottom: 24px;
+}
+.manara-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(138, 155, 168, 0.6);
+}
+.manara-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(138, 155, 168, 0.35) transparent;
 }
 
-.panel__title {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0 0 12px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+/* ============================================================
+   Manara utility classes
+   ============================================================ */
+.font-serif { font-family: var(--font-source-serif), Georgia, serif; }
+.font-mono  { font-family: var(--font-ibm-mono), ui-monospace, monospace; }
+.font-ui    { font-family: var(--font-inter), system-ui, sans-serif; }
+
+.manara-shadow-soft   { box-shadow: var(--shadow-soft); }
+.manara-shadow-soft-lg { box-shadow: var(--shadow-soft-lg); }
+.manara-shadow-elevated { box-shadow: var(--shadow-elevated); }
+
+.manara-surface {
+  background: var(--manara-white);
+  border: 1px solid var(--manara-mist);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
 }
 
-.badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  font-family: var(--font-mono);
+.manara-hairline {
+  border-color: var(--manara-mist);
 }
 
-.badge--synthetic {
-  background: rgba(209, 154, 102, 0.15);
-  color: var(--accent-warm);
-  border: 1px solid rgba(209, 154, 102, 0.4);
+/* ============================================================
+   Reduced motion
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
-.badge--ok {
-  background: rgba(78, 201, 176, 0.15);
-  color: var(--accent);
-  border: 1px solid rgba(78, 201, 176, 0.4);
+/* ============================================================
+   Loading shimmer (used for composing state)
+   ============================================================ */
+@keyframes manara-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.manara-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--manara-mist) 0%,
+    rgba(232, 239, 241, 0.55) 50%,
+    var(--manara-mist) 100%
+  );
+  background-size: 200% 100%;
+  animation: manara-shimmer 1.4s ease-in-out infinite;
 }
 
-.badge--danger {
-  background: rgba(212, 103, 103, 0.15);
-  color: var(--danger);
-  border: 1px solid rgba(212, 103, 103, 0.4);
+/* Lighthouse beam pulse — slow, calm */
+@keyframes manara-beam-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
 }
+.manara-beam { animation: manara-beam-pulse 3.4s ease-in-out infinite; }
 
-.kv {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 6px 16px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-}
-
-.kv__key {
-  color: var(--text-muted);
-}
-
-.kv__value {
-  color: var(--text);
-  word-break: break-all;
-}
-
-.warning-box {
-  background: rgba(209, 154, 102, 0.08);
-  border: 1px solid rgba(209, 154, 102, 0.3);
-  border-radius: 6px;
-  padding: 12px 16px;
-  margin: 12px 0;
-  color: var(--accent-warm);
-  font-size: 13px;
-  line-height: 1.7;
-}
-
-.list-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-top: 12px;
-}
-
-.list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  font-size: 13px;
-  font-family: var(--font-mono);
-}
-
-.list li {
-  padding: 4px 0;
-  border-bottom: 1px dashed var(--border);
-  display: flex;
-  gap: 8px;
-}
-
-.list li:last-child {
-  border-bottom: none;
-}
-
-.list li::before {
-  content: "·";
-  color: var(--text-muted);
-}
-
-.capability-card {
-  background: var(--panel-2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 16px 20px;
-  margin-top: 12px;
-}
-
-.capability-card h4 {
-  margin: 0 0 4px 0;
-  font-size: 15px;
-  color: var(--text);
-}
-
-.capability-card__id {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--accent);
-  margin-bottom: 12px;
-}
-
-.examples {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 12px;
-}
-
-.examples h5 {
-  margin: 0 0 4px 0;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-muted);
-}
-
-.examples ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.7;
-}
-
-.examples .pos li::before {
-  content: "+ ";
-  color: var(--accent);
-}
-
-.examples .neg li::before {
-  content: "× ";
-  color: var(--danger);
-}
-
-.footer {
-  margin-top: 48px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-  font-size: 12px;
-  color: var(--text-muted);
-  text-align: center;
-}
-
-.footer a {
-  color: var(--text-muted);
-  text-decoration: none;
-  border-bottom: 1px dotted var(--text-muted);
-}
-
-.loading {
-  color: var(--text-muted);
-  font-style: italic;
-}
-
-.error {
-  color: var(--danger);
-  font-family: var(--font-mono);
-  font-size: 13px;
-}
-
-/* G01 — Registry browser */
-.action-btn {
-  padding: 6px 12px;
-  background: var(--panel-2);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: var(--text);
-  font-family: inherit;
-  font-size: 13px;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.action-btn:hover {
-  border-color: var(--accent);
-  background: rgba(78, 201, 176, 0.08);
-}
-
-.action-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+@media (prefers-reduced-motion: reduce) {
+  .manara-beam { animation: none; }
+  .manara-shimmer { animation: none; }
 }
