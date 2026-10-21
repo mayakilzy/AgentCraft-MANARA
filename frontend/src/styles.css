@@ -1,51 +1,13 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@custom-variant dark (&:is(.dark *));
 
 /* ============================================================
    MANARA — Design System Tokens
    "Modern Knowledge Studio" — editorial, calm, lighthouse-themed
    ============================================================ */
 
-@theme inline {
-  --color-background: var(--manara-canvas);
-  --color-foreground: var(--manara-ink);
-  --font-sans: var(--font-inter), system-ui, sans-serif;
-  --font-mono: var(--font-ibm-mono), ui-monospace, monospace;
-  --font-serif: var(--font-source-serif), Georgia, serif;
-  --font-arabic: var(--font-ibm-arabic), "IBM Plex Sans Arabic", system-ui, sans-serif;
-
-  /* Sidebar tokens */
-  --color-sidebar: var(--manara-ink);
-  --color-sidebar-foreground: var(--manara-canvas);
-  --color-sidebar-border: rgba(247, 248, 246, 0.08);
-  --color-sidebar-accent: rgba(44, 115, 128, 0.18);
-  --color-sidebar-accent-foreground: var(--manara-canvas);
-
-  /* shadcn-compat tokens (mapped to MANARA palette) */
-  --color-card: var(--manara-white);
-  --color-card-foreground: var(--manara-ink);
-  --color-popover: var(--manara-white);
-  --color-popover-foreground: var(--manara-ink);
-  --color-primary: var(--manara-teal);
-  --color-primary-foreground: var(--manara-white);
-  --color-secondary: var(--manara-mist);
-  --color-secondary-foreground: var(--manara-ink);
-  --color-muted: var(--manara-mist);
-  --color-muted-foreground: var(--manara-ink-muted);
-  --color-accent: var(--manara-mist);
-  --color-accent-foreground: var(--manara-ink);
-  --color-destructive: var(--manara-error);
-  --color-border: var(--manara-mist);
-  --color-input: var(--manara-mist);
-  --color-ring: var(--manara-teal);
-
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
-}
 
 :root {
   /* MANARA palette — porcelain, navy, teal, brass */
@@ -97,7 +59,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    
     border-color: var(--manara-mist);
   }
 

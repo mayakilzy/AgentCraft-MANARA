@@ -48,7 +48,7 @@ export const ComposeResultCard = React.forwardRef<
   { submitting, result, error, onRetry, onClear },
   ref,
 ) {
-  const { t } = useLanguage();
+  
 
   if (submitting) {
     return <LoadingState ref={ref} />;
@@ -75,7 +75,7 @@ export const ComposeResultCard = React.forwardRef<
    ------------------------------------------------------------ */
 const IdleState = React.forwardRef<HTMLDivElement, object>(
   function IdleState(_, ref) {
-    const { t, dir } = useLanguage();
+    const { dir } = useLanguage();
     return (
       <section
         ref={ref}
@@ -108,7 +108,7 @@ const IdleState = React.forwardRef<HTMLDivElement, object>(
    ------------------------------------------------------------ */
 const LoadingState = React.forwardRef<HTMLDivElement, object>(
   function LoadingState(_, ref) {
-    const { t, dir } = useLanguage();
+    const {t} = useLanguage();
     return (
       <section
         ref={ref}
@@ -225,7 +225,7 @@ const SuccessState = React.forwardRef<
   HTMLDivElement,
   { result: ComposeResponse; onClear: () => void }
 >(function SuccessState({ result, onClear }, ref) {
-  const { t, lang, dir } = useLanguage();
+  const {t, dir} = useLanguage();
   const isBlocker = result.deliverable_type === 'coverage_blocker_report';
   const isFixture = result._source === 'fixture';
   const isComplete = result.is_complete;
@@ -537,7 +537,7 @@ function Subsection({
   variant?: 'default' | 'error';
   children: React.ReactNode;
 }) {
-  const { dir } = useLanguage();
+  
   return (
     <div className="mt-7">
       <div className="mb-3 flex items-center gap-2">
@@ -664,7 +664,7 @@ function CoverageRow({ entry }: { entry: CoverageEntry }) {
 }
 
 function GapRow({ gap }: { gap: GapEntry }) {
-  const { t, dir } = useLanguage();
+  const {t} = useLanguage();
   return (
     <div
       className="rounded-md border p-3.5"

@@ -9,9 +9,7 @@
  * - Coverage badge rendering
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ============================================================
 // API client tests
@@ -137,7 +135,6 @@ describe('API client — error behavior (MANARA-UI-01-CLOSURE fix)', () => {
 
 describe('Coverage badge values', () => {
   it('CoverageLevel type includes all 4 levels', async () => {
-    const { manaraApi } = await import('./api-client');
 
     // Verify the type union by checking fixture output
     vi.stubEnv('VITE_USE_FIXTURES', 'true');
