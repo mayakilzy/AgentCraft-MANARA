@@ -89,25 +89,28 @@ export function Sidebar({
   const content = (
     <div
       className={cn(
-        'flex h-full flex-col bg-[var(--manara-ink)] text-[var(--manara-canvas)]',
+        // MANARA-UI-VISUAL-FIDELITY-01 Decision 04: LIGHT sidebar per approved designs
+        // + OPEN-03: Modern Knowledge Studio (light) default
+        'flex h-full flex-col bg-[var(--manara-white)] text-[var(--manara-ink)]',
+        'border-e border-[var(--manara-mist)]',
         'transition-[width] duration-200 ease-out',
       )}
-      style={{ width: collapsed ? 64 : 240 }}
+      style={{ width: collapsed ? 64 : 260 }}
     >
       {/* Logo + wordmark */}
       <div
         className={cn(
-          'flex h-16 items-center gap-3 border-b border-white/5 px-4',
+          'flex h-16 items-center gap-3 border-b border-[var(--manara-mist)] px-4',
           collapsed && 'justify-center px-0',
         )}
       >
-        <LighthouseLogo size={28} variant="canvas" withBeam />
+        <LighthouseLogo size={28} variant="ink" withBeam />
         {!collapsed && (
           <div className="flex flex-col leading-tight">
-            <span className="font-serif text-[15px] font-semibold tracking-[0.04em] text-[var(--manara-canvas)]">
+            <span className="font-serif text-[16px] font-semibold tracking-[0.04em] text-[var(--manara-ink)]">
               {t('app.name')}
             </span>
-            <span className="font-ui text-[10px] uppercase tracking-[0.16em] text-[var(--manara-canvas)]/55">
+            <span className="font-ui text-[10px] uppercase tracking-[0.18em] text-[var(--manara-ink-muted)]">
               {t('app.shortTagline')}
             </span>
           </div>
@@ -125,9 +128,9 @@ export function Sidebar({
         {SECTION_ORDER.map((section, idx) => {
           const items = NAV_ITEMS.filter((n) => n.section === section);
           return (
-            <div key={section} className={cn(idx > 0 && 'mt-5')}>
+            <div key={section} className={cn(idx > 0 && 'mt-6')}>
               {!collapsed && (
-                <div className="mb-1.5 px-3 font-ui text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--manara-canvas)]/40">
+                <div className="mb-2 px-3 font-ui text-[10px] font-semibold uppercase tracking-[0.20em] text-[var(--manara-ink-muted)]">
                   {t(`nav.section.${section}`)}
                 </div>
               )}
@@ -157,23 +160,23 @@ export function Sidebar({
                           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--manara-teal)]',
                           collapsed && 'justify-center px-0',
                           isActive
-                            ? 'bg-[var(--manara-teal)]/20 text-[var(--manara-canvas)]'
-                            : 'text-[var(--manara-canvas)]/65 hover:bg-white/5 hover:text-[var(--manara-canvas)]/90',
+                            ? 'bg-[var(--manara-teal)]/10 text-[var(--manara-ink)] font-medium'
+                            : 'text-[var(--manara-ink-light)] hover:bg-[var(--manara-mist)] hover:text-[var(--manara-ink)]',
                         )}
                       >
                         {isActive && (
                           <span
                             aria-hidden
-                            className="absolute top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-full bg-[var(--manara-brass)]"
+                            className="absolute top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-full bg-[var(--manara-teal)]"
                             style={dir === 'rtl' ? { right: 0 } : { left: 0 }}
                           />
                         )}
-                        <Icon className="size-[18px] shrink-0" />
+                        <Icon className={cn('size-[18px] shrink-0', isActive && 'text-[var(--manara-teal)]')} />
                         {!collapsed && (
                           <span className="flex-1 truncate">{t(`nav.${item.key}`)}</span>
                         )}
                         {!collapsed && isLocked && (
-                          <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-ui text-[9.5px] font-medium uppercase tracking-[0.08em] text-[var(--manara-canvas)]/40 border border-white/10">
+                          <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-ui text-[9.5px] font-medium uppercase tracking-[0.08em] text-[var(--manara-ink-muted)] border border-[var(--manara-mist)] bg-[var(--manara-mist)]/40">
                             <Lock className="size-2.5" />
                             {t('nav.comingLater')}
                           </span>
@@ -191,7 +194,7 @@ export function Sidebar({
       {/* Footer — demo mode */}
       <div
         className={cn(
-          'border-t border-white/5 px-4 py-3',
+          'border-t border-[var(--manara-mist)] px-4 py-3',
           collapsed && 'px-2',
         )}
       >
@@ -203,12 +206,12 @@ export function Sidebar({
           <div className="flex flex-col gap-1.5">
             <Pill
               variant="brass"
-              className="w-fit border-white/15 bg-white/5 text-[var(--manara-brass)]"
+              className="w-fit border-[var(--manara-mist)] bg-[var(--manara-mist)]/40 text-[var(--manara-brass)]"
             >
               <span className="size-1.5 rounded-full bg-[var(--manara-brass)]" />
               {t('demo.mode')}
             </Pill>
-            <span className="font-mono text-[10px] text-[var(--manara-canvas)]/40">
+            <span className="font-mono text-[10px] text-[var(--manara-ink-muted)]">
               {t('demo.version')}
             </span>
           </div>
