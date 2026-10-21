@@ -91,7 +91,8 @@ export class ManaraApiError extends Error {
 }
 
 // In Vite, use import.meta.env instead of process.env
-const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) || '';
+// Call the backend directly to avoid Vite dev server single-threading
+const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) || 'http://localhost:8000';
 
 // Fixtures are ONLY enabled when VITE_USE_FIXTURES=true is set explicitly.
 // In normal mode, all API errors (4xx, 5xx, network) are surfaced honestly.
