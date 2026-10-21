@@ -265,7 +265,36 @@ export const manaraApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query }),
     });
-    return { ...r, _source: 'live' as const };
+    // MANARA-UI-02-LUCIDE-RECOVERY-01 — normalize coverage_level case.
+    // The backend CoverageLevel enum emits lowercase values ('none',
+    // 'catalog', 'operational', 'verified'); the frontend CoverageLevel
+    // type expects uppercase. Without normalization, CoverageBadge crashes
+    // with "Cannot read properties of undefined (reading 'bg')", which
+    // takes down the entire ComposeResult subtree (and the Open Workspace
+    // button after it).
+    const normalizeLevel = (v: unknown): CoverageLevel => {
+      const s = String(v ?? '').toUpperCase();
+      if (s === 'NONE' || s === 'CATALOG' || s === 'OPERATIONAL' || s === 'VERIFIED') {
+        return s as CoverageLevel;
+      }
+      // Unknown values default to NONE — honest "no coverage" treatment
+      // rather than crash. The API contract permits only the 4 above.
+      return 'NONE';
+    };
+    const normalizedCoverage = (r.coverage || []).map((c) => ({
+      ...c,
+      coverage_level: normalizeLevel(c.coverage_level),
+    }));
+    const normalizedGaps = (r.gaps || []).map((g) => ({
+      ...g,
+      coverage_level: normalizeLevel(g.coverage_level),
+    }));
+    return {
+      ...r,
+      coverage: normalizedCoverage,
+      gaps: normalizedGaps,
+      _source: 'live' as const,
+    };
   },
 } as const;
 

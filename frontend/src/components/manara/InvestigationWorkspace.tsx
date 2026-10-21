@@ -9,12 +9,17 @@ import * as React from 'react';
 import { useLanguage } from './i18n';
 import {
   manaraApiExt,
+  ManaraApiError,
   type WorkflowResponse,
   type EvidenceItem,
   type ClaimItem,
   type EdgeItem,
   type InvestigationSummary,
 } from './api-client';
+
+// API_BASE for direct fetch calls (workflow initialization)
+// Default matches the value in api-client.ts
+const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) || 'http://localhost:8000';
 import {
   Loader2, AlertCircle, ChevronRight, Network, FileText,
   MessageSquare, RefreshCw, List, Maximize2,
@@ -328,6 +333,33 @@ export function InvestigationWorkspace({ investigationId, onInvestigationChange 
         const wf = await manaraApiExt.workflow(investigationId);
         if (!cancelled) { setWorkflow(wf); setWfLoading(false); setWfError(null); }
       } catch (e) {
+        // MANARA-UI-02-LUCIDE-RECOVERY-01 — the backend creates a workflow
+        // row lazily (on first transition), not at compose time. So the
+        // first GET after a fresh compose can legitimately return 404.
+        // Rather than showing an error state, auto-initialize the workflow
+        // by POSTing to the workflow endpoint, then re-fetch.
+        const is404 = e instanceof ManaraApiError && e.status === 404;
+        if (is404 && !cancelled) {
+          try {
+            await fetch(`${API_BASE}/mold-factory/investigations/${investigationId}/workflow`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+            });
+            const wf = await manaraApiExt.workflow(investigationId);
+            if (!cancelled) { setWorkflow(wf); setWfLoading(false); setWfError(null); }
+            return;
+          } catch (initErr) {
+            if (!cancelled) {
+              setWfLoading(false);
+              setWfError(
+                `Failed to initialize workflow: ${
+                  initErr instanceof Error ? initErr.message : String(initErr)
+                }`,
+              );
+            }
+            return;
+          }
+        }
         if (!cancelled) {
           setWfLoading(false);
           setWfError(e instanceof Error ? e.message : 'Failed to load workflow');

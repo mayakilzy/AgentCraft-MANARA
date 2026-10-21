@@ -58,7 +58,11 @@ export function CoverageBadge({
   withDot?: boolean;
 }) {
   const { lang } = useLanguage();
-  const s = COVERAGE_STYLES[level];
+  // MANARA-UI-02-LUCIDE-RECOVERY-01 — defensive: if the backend ships an
+  // unexpected coverage_level (e.g. lowercase, typo, missing), fall back to
+  // NONE rather than throwing "Cannot read properties of undefined (reading
+  // 'bg')" — which previously took down the entire ComposeResult subtree.
+  const s = COVERAGE_STYLES[level] ?? COVERAGE_STYLES.NONE;
   return (
     <span
       className={cn(
