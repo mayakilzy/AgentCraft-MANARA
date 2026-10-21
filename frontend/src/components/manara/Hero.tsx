@@ -158,9 +158,9 @@ export function Hero({
               aria-hidden
             />
             <div className="absolute bottom-3 inset-x-3 flex justify-center">
-              <Pill variant="brass" className="backdrop-blur-sm">
-                <span className="size-1.5 rounded-full bg-[var(--manara-brass)]" />
-                {t('app.name')} · {dir === 'rtl' ? 'منارة' : 'Guiding light for research'}
+              <Pill variant="brass" className="backdrop-blur-sm whitespace-nowrap overflow-hidden text-ellipsis max-w-full">
+                <span className="size-1.5 rounded-full bg-[var(--manara-brass)] shrink-0" />
+                <span className="truncate">{t('app.name')} · {dir === 'rtl' ? 'منارة' : 'Guiding light for research'}</span>
               </Pill>
             </div>
           </div>

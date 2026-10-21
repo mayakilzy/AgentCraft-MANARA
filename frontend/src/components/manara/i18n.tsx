@@ -211,6 +211,7 @@ const ar: Dict = {
   'header.languageAr': 'العربية',
 };
 
+export const translations = { en, ar } as const;
 const dictionaries: Record<Language, Dict> = { en, ar };
 
 interface LanguageContextValue {

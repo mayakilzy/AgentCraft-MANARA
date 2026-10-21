@@ -1,4 +1,3 @@
-'use client';
 
 import * as React from 'react';
 import {
@@ -18,7 +17,6 @@ import { useLanguage } from './i18n';
 import {
   CoverageBadge,
   Pill,
-  StatusBadge,
 } from './Badges';
 import type {
   ComposeResponse,

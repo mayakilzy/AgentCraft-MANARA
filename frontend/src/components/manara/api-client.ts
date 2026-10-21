@@ -5,12 +5,17 @@
    /status and /mold-factory/* to the real backend at
    http://localhost:8000 (configurable via VITE_API_TARGET).
 
-   When the backend is unreachable, the client falls back to
-   deterministic development fixtures so the UI can be visually
-   tested. Every response carries `_source: 'live' | 'fixture'`
-   so the UI can label fixture data honestly.
+   FIXTURE BEHAVIOR (MANARA-UI-01-CLOSURE fix):
+   - Fixtures are used ONLY when VITE_USE_FIXTURES=true is set
+     explicitly in the environment.
+   - In normal mode (default), HTTP 4xx/5xx errors and network
+     failures produce ManaraApiError, which the UI surfaces as
+     an honest error state — NOT a fake success.
+   - This prevents a real failed API request from being silently
+     replaced with a simulated investigation.
 
-   In production, set VITE_API_BASE to the backend URL.
+   Every response carries `_source: 'live' | 'fixture'` so the
+   UI can label fixture data honestly.
    ============================================================ */
 
 export type CoverageLevel = 'NONE' | 'CATALOG' | 'OPERATIONAL' | 'VERIFIED';
@@ -88,10 +93,13 @@ export class ManaraApiError extends Error {
 // In Vite, use import.meta.env instead of process.env
 const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) || '';
 
+// Fixtures are ONLY enabled when VITE_USE_FIXTURES=true is set explicitly.
+// In normal mode, all API errors (4xx, 5xx, network) are surfaced honestly.
+const USE_FIXTURES = (import.meta.env.VITE_USE_FIXTURES as string | undefined) === 'true';
+
 /* ============================================================
    Deterministic development fixtures
-   Used when the backend is unreachable. The same query always
-   yields the same composition, so the UI can be visually tested.
+   ONLY used when VITE_USE_FIXTURES=true.
    ============================================================ */
 
 function hashQuery(query: string): number {
@@ -132,15 +140,14 @@ function fixtureStatus(): StatusResponse {
 
 function fixtureCompose(query: string): ComposeResponse {
   const h = hashQuery(query);
-  const isComplete = h % 3 === 0; // ~33% chance of complete
-  const isBlocker = !isComplete && h % 2 === 0; // ~33% blocker, ~33% partial
+  const isComplete = h % 3 === 0;
 
   const needs = [
     { need: 'scientific_literature', label_en: 'Scientific Literature', label_ar: 'الأدبيات العلمية', relevance: 0.95 },
     { need: 'patent_intelligence', label_en: 'Patent Intelligence', label_ar: 'ذكاء براءات الاختراع', relevance: 0.72 },
     { need: 'clinical_evidence', label_en: 'Clinical Evidence', label_ar: 'الأدلة السريرية', relevance: 0.68 },
     { need: 'technology_signals', label_en: 'Technology Signals', label_ar: 'إشارات التقنية', relevance: 0.55 },
-  ].slice(0, 2 + (h % 3)); // 2-4 needs
+  ].slice(0, 2 + (h % 3));
 
   const coverageLevels: CoverageLevel[] = ['VERIFIED', 'OPERATIONAL', 'CATALOG', 'NONE'];
   const coverage = needs.map((n, i) => ({
@@ -190,46 +197,76 @@ function fixtureCompose(query: string): ComposeResponse {
 
 /* ============================================================
    API methods
+
+   FIXTURE BEHAVIOR (MANARA-UI-01-CLOSURE fix):
+   - When USE_FIXTURES=true: return fixture data (explicit test mode).
+   - When USE_FIXTURES=false (default): call the real backend.
+     - HTTP 4xx/5xx → throw ManaraApiError (UI shows error state).
+     - Network failure → throw ManaraApiError with status=0.
+     - Success → return live response with _source='live'.
+   - NEVER silently replace a failed real request with a fixture.
    ============================================================ */
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const r = await fetch(`${API_BASE}${url}`, {
-    ...init,
-    headers: { Accept: 'application/json', ...(init?.headers || {}) },
-  });
+  let r: Response;
+  try {
+    r = await fetch(`${API_BASE}${url}`, {
+      ...init,
+      headers: { Accept: 'application/json', ...(init?.headers || {}) },
+    });
+  } catch (e) {
+    // Network-level failure (backend unreachable, DNS, CORS, etc.)
+    throw new ManaraApiError(
+      0,
+      `Network error: unable to reach ${url}. ${e instanceof Error ? e.message : ''}`,
+    );
+  }
+
   if (!r.ok) {
     let detail: unknown;
     try {
       detail = await r.json();
     } catch {
-      detail = await r.text();
+      detail = await r.text().catch(() => null);
     }
-    throw new ManaraApiError(r.status, `Request to ${url} failed`, detail);
+    // HTTP 4xx/5xx — surface as honest error, NOT fixture
+    throw new ManaraApiError(
+      r.status,
+      `Request to ${url} failed with HTTP ${r.status}`,
+      detail,
+    );
   }
+
   return (await r.json()) as T;
 }
 
 export const manaraApi = {
   async status(): Promise<StatusResponse> {
-    try {
-      const r = await fetchJson<StatusResponse>('/status');
-      return { ...r, _source: 'live' as const };
-    } catch {
+    // Fixtures only in explicit test mode
+    if (USE_FIXTURES) {
       return fixtureStatus();
     }
+
+    // Normal mode — real backend call, errors surface honestly
+    const r = await fetchJson<StatusResponse>('/status');
+    return { ...r, _source: 'live' as const };
   },
 
   async compose(query: string): Promise<ComposeResponse> {
-    try {
-      const r = await fetchJson<ComposeResponse>('/mold-factory/compose', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
-      });
-      return { ...r, _source: 'live' as const };
-    } catch {
-      // Backend unreachable — return deterministic fixture
+    // Fixtures only in explicit test mode
+    if (USE_FIXTURES) {
       return fixtureCompose(query);
     }
+
+    // Normal mode — real backend call, errors surface honestly
+    const r = await fetchJson<ComposeResponse>('/mold-factory/compose', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    });
+    return { ...r, _source: 'live' as const };
   },
 } as const;
+
+/** Export for testing — check if fixtures are enabled */
+export const isFixtureMode = () => USE_FIXTURES;

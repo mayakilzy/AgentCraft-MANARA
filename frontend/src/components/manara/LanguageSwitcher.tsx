@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage, type Language } from './i18n';
