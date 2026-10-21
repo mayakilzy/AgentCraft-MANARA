@@ -270,3 +270,139 @@ export const manaraApi = {
 
 /** Export for testing — check if fixtures are enabled */
 export const isFixtureMode = () => USE_FIXTURES;
+
+/* ============================================================
+   UI-02 API extensions — Investigation Workspace + Memory Explorer
+   ============================================================ */
+
+export interface InvestigationSummary {
+  id: string;
+  topic: string;
+  state: string | null;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InvestigationDetail {
+  id: string;
+  topic: string;
+  tenant_id: string;
+  user_id: string;
+  state: string;
+  payload: Record<string, unknown>;
+  workflow_state: string | null;
+  mold_id: string | null;
+  blocker: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkflowTransition {
+  from: string | null;
+  to: string;
+  at: string;
+  actor: string;
+  rationale: string;
+}
+
+export interface WorkflowResponse {
+  investigation_id: string;
+  state: string;
+  mold_id: string | null;
+  blocker: string | null;
+  transitions: WorkflowTransition[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TransitionResponse {
+  investigation_id: string;
+  previous_state: string;
+  new_state: string;
+  transitioned: boolean;
+  blocker: string | null;
+}
+
+export interface EvidenceItem {
+  id: string;
+  source_id: string;
+  kind: string;
+  checksum: string | null;
+  observed_at: string | null;
+  ingested_at: string;
+}
+
+export interface ClaimItem {
+  id: string;
+  evidence_id: string;
+  statement: string;
+  verdict: string;
+  independence_group: string | null;
+  superseded_by: string | null;
+}
+
+export interface EdgeItem {
+  edge_id: number;
+  claim_id: string;
+  evidence_id: string;
+  relation: string;
+  weight: number;
+  notes: string;
+  created_at: string;
+}
+
+export interface DecisionItem {
+  id: number;
+  decision_type: string;
+  evidence_id: string | null;
+  claim_id: string | null;
+  actor: string;
+  rationale: string;
+  decided_at: string;
+}
+
+export interface CutoffResponse {
+  investigation_id: string;
+  cutoff: string;
+  visible_evidence_count: number;
+  visible_evidence: Array<{
+    id: string;
+    source_id: string;
+    observed_at: string | null;
+    ingested_at: string;
+  }>;
+}
+
+// Extended API methods
+async function getApi<T>(path: string): Promise<T> {
+  return fetchJson<T>(path);
+}
+
+async function postApi<T>(path: string, body?: unknown): Promise<T> {
+  return fetchJson<T>(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+}
+
+// Extend the manaraApi object with UI-02 methods
+export const manaraApiExt = {
+  investigations: () => getApi<InvestigationSummary[]>('/mold-factory/investigations'),
+  investigation: (id: string) => getApi<InvestigationDetail>(`/mold-factory/investigations/${id}`),
+  workflow: (id: string) => getApi<WorkflowResponse>(`/mold-factory/investigations/${id}/workflow`),
+  transition: (id: string, targetState: string) =>
+    postApi<TransitionResponse>(`/mold-factory/investigations/${id}/transition`, {
+      target_state: targetState,
+      actor: 'ui-user',
+      rationale: 'User-triggered transition from UI',
+    }),
+  evidence: (invId: string) => getApi<EvidenceItem[]>(`/memory/investigations/${invId}/evidence`),
+  claims: (invId: string, verdict?: string) =>
+    getApi<ClaimItem[]>(`/memory/investigations/${invId}/claims${verdict ? `?verdict=${verdict}` : ''}`),
+  edges: (invId: string) => getApi<EdgeItem[]>(`/memory/investigations/${invId}/edges`),
+  decisions: (invId: string) => getApi<DecisionItem[]>(`/memory/investigations/${invId}/decisions`),
+  atCutoff: (invId: string, cutoffIso: string) =>
+    postApi<CutoffResponse>(`/memory/investigations/${invId}/at-cutoff`, { cutoff_iso: cutoffIso }),
+} as const;

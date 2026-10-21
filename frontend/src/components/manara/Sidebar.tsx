@@ -70,6 +70,9 @@ interface SidebarProps {
   /** Mobile drawer open state */
   mobileOpen: boolean;
   onCloseMobile: () => void;
+  activePage?: string;
+  onNavigate?: (page: 'home' | 'workspace' | 'memory') => void;
+  workspaceEnabled?: boolean;
 }
 
 export function Sidebar({
