@@ -99,10 +99,12 @@ def test_wal_sidecar_files_created_after_write(engine) -> None:
     if db_path.startswith("/") and not Path(db_path).is_absolute():
         db_path = "/" + db_path.lstrip("/")
 
-    # Perform a write to force WAL activity
+    # Perform a write to force WAL activity.
+    # Use INSERT OR REPLACE so the test is idempotent across runs (the probe
+    # table is not dropped by conftest between test sessions).
     with engine.connect() as conn:
         conn.execute(text("CREATE TABLE IF NOT EXISTS _wal_probe (id INTEGER PRIMARY KEY)"))
-        conn.execute(text("INSERT INTO _wal_probe (id) VALUES (1)"))
+        conn.execute(text("INSERT OR REPLACE INTO _wal_probe (id) VALUES (1)"))
         conn.commit()
 
     # The -wal file should now exist (it may be checkpointed away if the
