@@ -80,6 +80,9 @@ export function Sidebar({
   onToggleCollapsed,
   mobileOpen,
   onCloseMobile,
+  activePage,
+  onNavigate,
+  workspaceEnabled,
 }: SidebarProps) {
   const { t, dir } = useLanguage();
 
@@ -131,17 +134,21 @@ export function Sidebar({
               <ul className="space-y-0.5">
                 {items.map((item) => {
                   const Icon = item.icon;
-                  const isActive = !!item.active;
-                  const isLocked = !isActive;
+                  // Determine if this item is clickable: home always, workspace+memory when investigation exists
+                  const isClickable = item.key === 'home' || (workspaceEnabled && (item.key === 'workspace' || item.key === 'memory'));
+                  // Determine if this is the current active page
+                  const isActive = activePage === item.key;
+                  const isLocked = !isClickable;
                   return (
                     <li key={item.key}>
                       <a
                         href="#"
                         onClick={(e) => {
                           e.preventDefault();
-                          if (isActive) {
-                            onCloseMobile();
+                          if (isClickable && onNavigate && (item.key === 'home' || item.key === 'workspace' || item.key === 'memory')) {
+                            onNavigate(item.key);
                           }
+                          onCloseMobile();
                         }}
                         aria-current={isActive ? 'page' : undefined}
                         title={collapsed ? t(`nav.${item.key}`) : undefined}

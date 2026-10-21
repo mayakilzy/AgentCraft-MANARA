@@ -2,10 +2,6 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath, URL } from "node:url";
 
-// https://vitejs.dev/config/
-// The API target is configurable via env var VITE_API_TARGET.
-// - In local dev (outside Docker): defaults to "http://localhost:8000"
-// - Inside Docker Compose: set VITE_API_TARGET=http://backend:8000
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const apiTarget = env.VITE_API_TARGET || "http://localhost:8000";
@@ -24,9 +20,10 @@ export default defineConfig(({ mode }) => {
     "/publishing",
   ];
 
-  const proxyConfig: Record<string, string> = {};
+  // Vite proxy expects an object with `target`, not a bare string
+  const proxyConfig: Record<string, { target: string; changeOrigin: boolean }> = {};
   for (const route of apiRoutes) {
-    proxyConfig[route] = apiTarget;
+    proxyConfig[route] = { target: apiTarget, changeOrigin: true };
   }
 
   return {
