@@ -25,7 +25,11 @@
   /* Font family variables — bound to Google Fonts loaded in index.html */
   --font-source-serif: "Source Serif 4", Georgia, serif;
   --font-inter: "Inter", system-ui, sans-serif;
-  --font-ibm-arabic: "IBM Plex Sans Arabic", system-ui, sans-serif;
+  /* MANARA-UI-PAGE01-ARABIC-VISUAL-FIX-01: Arabic font is Tajawal per owner directive.
+     Tajawal is a modern Arabic sans-serif with balanced weights for headings + body.
+     IBM Plex Sans Arabic kept as fallback in case Tajawal fails to load. */
+  --font-ibm-arabic: "Tajawal", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-arabic: "Tajawal", "IBM Plex Sans Arabic", system-ui, sans-serif;
   --font-ibm-mono: "IBM Plex Mono", ui-monospace, monospace;
   --manara-success: #3A8A5C;
   --manara-warning: #C49445;
@@ -84,14 +88,17 @@
   }
 
   /* RTL — apply Arabic font family + direction */
+  /* MANARA-UI-PAGE01-ARABIC-VISUAL-FIX-01: Tajawal is now the primary Arabic font
+     (set via --font-ibm-arabic variable). Tajawal has better proportions for Arabic
+     headings and body text. */
   [dir="rtl"] body,
   [dir="rtl"] .font-ui,
   [dir="rtl"] .font-sans {
-    font-family: var(--font-ibm-arabic), "IBM Plex Sans Arabic", system-ui, sans-serif;
+    font-family: var(--font-arabic);
   }
 
   [dir="rtl"] .font-serif {
-    font-family: var(--font-ibm-arabic), "IBM Plex Sans Arabic", Georgia, serif;
+    font-family: var(--font-arabic);
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -103,9 +110,10 @@
   [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3,
   [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6 {
     letter-spacing: 0;
-    /* MANARA-UI-PAGE01-RTL-VISUAL-CLOSURE-01: Arabic headings use IBM Plex Sans Arabic
-       because Source Serif 4 does not shape Arabic letters correctly. */
-    font-family: var(--font-ibm-arabic), "IBM Plex Sans Arabic", system-ui, sans-serif;
+    /* MANARA-UI-PAGE01-ARABIC-VISUAL-FIX-01: Arabic headings use Tajawal
+     (was IBM Plex Sans Arabic). Tajawal is the owner-approved Arabic font. */
+    font-family: var(--font-arabic);
+    font-weight: 700;
   }
 
   ::selection {
@@ -258,6 +266,13 @@
 [dir="rtl"] .manara-hero-copy {
   text-align: right;
   padding: 49px 45px 0 25px;
+  /* MANARA-UI-PAGE01-ARABIC-VISUAL-FIX-01: narrower max-width in RTL to
+     prevent text overlap with the lighthouse artwork on the left side.
+     The original 700px was fine for LTR but caused Arabic text to collide
+     with the hero art in RTL. */
+  max-width: 580px;
+  position: relative;
+  z-index: 2;
 }
 
 .manara-eyebrow {
@@ -289,12 +304,17 @@
 
 [dir="rtl"] .manara-hero-title {
   letter-spacing: 0;
-  /* MANARA-UI-PAGE01-RTL-VISUAL-CLOSURE-01: Arabic must use IBM Plex Sans Arabic,
-     not Source Serif 4 (which doesn't shape Arabic correctly — letters render
-     disconnected). The base .manara-hero-title rule sets font-family to
-     var(--font-source-serif); this RTL override switches to Arabic font. */
-  font-family: var(--font-ibm-arabic), "IBM Plex Sans Arabic", system-ui, sans-serif;
-  font-weight: 600;
+  /* MANARA-UI-PAGE01-ARABIC-VISUAL-FIX-01: switch to Tajawal (owner-approved
+     Arabic font). Reduce font-size and increase line-height because Tajawal
+     is wider than Source Serif 4 — the prior clamp(38px, 4.1vw, 69px) caused
+     text collision and overlap with the hero artwork in RTL. */
+  font-family: var(--font-arabic);
+  font-weight: 700;
+  font-size: clamp(30px, 3.2vw, 52px);
+  line-height: 1.18;
+  /* Allow Tajawal to use the natural Arabic letter-width without negative
+     letter-spacing (which is harmful for Arabic glyph shaping). */
+  max-width: 600px;
 }
 
 .manara-hero-accent {
@@ -309,6 +329,15 @@
   line-height: 1.46;
   font-size: 16px;
   margin: 0;
+}
+
+[dir="rtl"] .manara-hero-description {
+  /* MANARA-UI-PAGE01-ARABIC-VISUAL-FIX-01: smaller font size + tighter
+     max-width for Arabic to prevent text/art overlap. Tajawal glyphs are
+     wider than Inter, so 16px Arabic looks bigger than 16px English. */
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 520px;
 }
 
 .manara-question-card {
@@ -554,6 +583,16 @@
 
 [dir="rtl"] .manara-step {
   padding: 16px 38px 16px 17px;
+  /* MANARA-UI-PAGE01-ARABIC-VISUAL-FIX-01: ensure flex children flow
+     right-to-left in RTL so the icon (first child) appears on the right
+     (start of RTL reading order) and the text on the left. */
+  flex-direction: row;
+  text-align: right;
+}
+
+[dir="rtl"] .manara-step h3,
+[dir="rtl"] .manara-step p {
+  text-align: right;
 }
 
 .manara-step-number {
@@ -686,6 +725,18 @@
   padding: 13px 8px;
   display: flex;
   flex-direction: column;
+}
+
+[dir="rtl"] .manara-cap-grid > div {
+  /* MANARA-UI-PAGE01-ARABIC-VISUAL-FIX-01: align icon to the right (start
+     of RTL) and right-align text for natural Arabic reading flow. */
+  align-items: flex-end;
+  text-align: right;
+}
+
+[dir="rtl"] .manara-cap-grid b,
+[dir="rtl"] .manara-cap-grid small {
+  text-align: right;
 }
 
 .manara-cap-icon {
@@ -1495,4 +1546,234 @@
   .manara-phases { margin-bottom: 8px; }
   .manara-question-h1 { font-size: 22px; }
   .manara-actions { display: none; }
+}
+
+/* ============================================================
+   MANARA-UI-PAGE01-ARABIC-VISUAL-FIX-01
+   Arabic (RTL) visual fixes — Tajawal font + layout corrections.
+   All rules scoped under [dir="rtl"] to NOT affect the English version.
+   ============================================================ */
+
+/* ── Header search bar — ensure flex children reverse properly in RTL ── */
+[dir="rtl"] .manara-header-search {
+  /* In RTL, the search icon should appear on the right (leading edge of
+     the reading direction). Tailwind's `flex` + `dir=rtl` should reverse
+     children automatically, but this explicit rule ensures it. */
+  flex-direction: row-reverse;
+}
+
+/* ── Question card RTL — fix internal element alignment ── */
+[dir="rtl"] .manara-question-input {
+  /* Ensure textarea text starts from the right edge with proper padding */
+  text-align: right;
+  padding-right: 16px;
+  padding-left: 8px;
+}
+
+[dir="rtl"] .manara-question-actions {
+  /* In RTL: hint should be on the right (leading), submit cluster on the
+     left (trailing). The default flex with justify-content: space-between
+     handles this if children flow correctly. */
+  flex-direction: row;
+}
+
+[dir="rtl"] .manara-question-submit {
+  /* Submit cluster: char counter → clear button → submit button.
+     In RTL, this should flow right-to-left, so the submit button
+     appears on the LEFT (trailing edge), which is the natural
+     "forward" direction in Arabic. */
+  flex-direction: row;
+}
+
+[dir="rtl"] .manara-primary-btn {
+  /* The arrow icon inside the submit button is already rotated 180°
+     in JSX (isAr && 'rotate-180'). The "ابدأ التحقيق" text + arrow
+     should flow naturally in RTL with the arrow pointing LEFT (= forward
+     in Arabic reading direction). */
+  flex-direction: row;
+}
+
+[dir="rtl"] .manara-primary-btn > span {
+  /* Order: text first, then arrow icon — in RTL this renders text on
+     the right, arrow on the left (which is "forward" in Arabic). */
+  order: 1;
+}
+
+[dir="rtl"] .manara-primary-btn > svg {
+  order: 2;
+}
+
+/* ── Question chips strip — proper RTL alignment, no text compression ── */
+[dir="rtl"] .manara-question-chips {
+  /* Ensure chips flow right-to-left and wrap properly without compression */
+  flex-direction: row;
+  justify-content: flex-start;
+  text-align: right;
+}
+
+[dir="rtl"] .manara-question-chips > span {
+  /* Each chip's internal text should be right-aligned */
+  text-align: right;
+  direction: rtl;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+/* ── "How MANARA works" section title ── */
+[dir="rtl"] .manara-section-title h2 {
+  font-family: var(--font-arabic);
+  font-weight: 700;
+  text-align: right;
+}
+
+[dir="rtl"] .manara-section-title p {
+  text-align: right;
+}
+
+[dir="rtl"] .manara-learn-more {
+  /* "Learn more" link with arrow — in RTL the arrow should point LEFT
+     (= forward direction in Arabic). The JSX already rotates the arrow
+     via `isAr && 'rotate-180'`. Ensure the text+arrow cluster flows
+     right-to-left. */
+  flex-direction: row;
+  font-family: var(--font-arabic);
+}
+
+[dir="rtl"] .manara-learn-more > span {
+  order: 1;
+}
+
+[dir="rtl"] .manara-learn-more > svg {
+  order: 2;
+}
+
+/* ── Step arrows — ensure they point in the right direction for RTL ── */
+[dir="rtl"] .manara-step-arrow {
+  /* The arrow is rotated 180° in JSX for AR. With RTL flex row, the
+     arrow's position should naturally flow between steps. */
+  font-family: var(--font-arabic);
+}
+
+[dir="rtl"] .manara-step h3 {
+  font-family: var(--font-arabic);
+  font-weight: 700;
+}
+
+[dir="rtl"] .manara-step p {
+  font-family: var(--font-arabic);
+  font-weight: 400;
+}
+
+/* ── Mountain card (bottom dark CTA) — Arabic adjustments ── */
+[dir="rtl"] .manara-mountain-card h2 {
+  font-family: var(--font-arabic);
+  font-weight: 700;
+  /* Slightly smaller font size for Arabic to prevent line break issues */
+  font-size: 20px;
+  line-height: 1.15;
+}
+
+[dir="rtl"] .manara-mountain-card p {
+  font-family: var(--font-arabic);
+  text-align: right;
+}
+
+[dir="rtl"] .manara-mountain-cta {
+  font-family: var(--font-arabic);
+  font-weight: 600;
+  /* In RTL the CTA should be on the right (start of reading direction) */
+  inset-inline-start: auto;
+  inset-inline-end: 22px;
+  text-align: right;
+}
+
+/* ── Capabilities section header + cards ── */
+[dir="rtl"] .manara-capabilities > h2 {
+  font-family: var(--font-arabic);
+  font-weight: 700;
+  text-align: right;
+}
+
+[dir="rtl"] .manara-capabilities > p {
+  text-align: right;
+  font-family: var(--font-arabic);
+}
+
+[dir="rtl"] .manara-cap-grid b {
+  font-family: var(--font-arabic);
+  font-weight: 700;
+}
+
+[dir="rtl"] .manara-cap-grid small {
+  font-family: var(--font-arabic);
+  font-weight: 400;
+}
+
+/* ── Eyebrow text (over hero title) ── */
+[dir="rtl"] .manara-eyebrow {
+  font-family: var(--font-arabic);
+  letter-spacing: 0;
+  /* Arabic doesn't need the wide letter-spacing used for English uppercase */
+}
+
+/* ── Hero accent (the "تكتشف" word in the title) ── */
+[dir="rtl"] .manara-hero-accent {
+  font-family: var(--font-arabic);
+  font-style: normal; /* Italic doesn't apply to Arabic; remove it */
+  font-weight: 700;
+}
+
+/* ── Question hint text (e.g. example placeholder below input) ── */
+[dir="rtl"] .manara-question-hint {
+  font-family: var(--font-arabic);
+  text-align: right;
+}
+
+/* ── Char counter (mono font for numerals is fine in both languages) ── */
+[dir="rtl"] .manara-char-counter {
+  /* Keep mono font — numerals look consistent in mono */
+  font-family: var(--font-ibm-mono), ui-monospace, monospace;
+}
+
+/* ── Below-hero section padding ── */
+[dir="rtl"] .manara-below {
+  font-family: var(--font-arabic);
+}
+
+/* ── Responsive Arabic fixes ── */
+@media (max-width: 1180px) {
+  [dir="rtl"] .manara-hero-title {
+    font-size: clamp(28px, 3.5vw, 42px);
+    line-height: 1.2;
+  }
+  [dir="rtl"] .manara-hero-copy {
+    max-width: 500px;
+  }
+}
+
+@media (max-width: 780px) {
+  [dir="rtl"] .manara-hero-title {
+    font-size: clamp(26px, 7vw, 38px);
+    line-height: 1.22;
+  }
+  [dir="rtl"] .manara-hero-copy {
+    max-width: 100%;
+    padding: 35px 22px 0;
+  }
+  [dir="rtl"] .manara-hero-description {
+    font-size: 13px;
+    max-width: 100%;
+  }
+  [dir="rtl"] .manara-step {
+    /* On mobile, steps stack vertically — center the icon */
+    align-items: flex-start;
+    flex-direction: rtl; /* fallback */
+    flex-direction: row;
+    padding: 16px 17px 16px 38px;
+  }
+  [dir="rtl"] .manara-cap-grid > div {
+    align-items: flex-end;
+  }
 }

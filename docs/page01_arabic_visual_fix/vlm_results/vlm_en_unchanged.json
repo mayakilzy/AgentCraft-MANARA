@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "1. **Unchanged?** Yes, the page appears visually identical to a standard English version.\n2. **Hero Font?** Yes, \"What do you want to discover today?\" is rendered in **Source Serif 4** (serif).\n3. **Layout Direction?** Yes, the layout is strictly **LTR** (Left-to-Right). Sidebar, search, and content align to the left.\n4. **Regressions?** None detected. The UI elements (sidebar, input field, cards) are correctly aligned and spaced.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1792664575,
+  "id": "20261022182251d3ed5e511f9240ab",
+  "model": "glm-5v-turbo",
+  "object": "chat.completion",
+  "request_id": "20261022182251d3ed5e511f9240ab",
+  "usage": {
+    "completion_tokens": 113,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 5974,
+    "prompt_tokens_details": {
+      "cached_tokens": 2
+    },
+    "total_tokens": 6087
+  }
+}

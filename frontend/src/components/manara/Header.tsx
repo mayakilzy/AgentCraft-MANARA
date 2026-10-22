@@ -63,7 +63,7 @@ export function Header({
       <div
         aria-label={isAr ? 'بحث عام (غير متاح حالياً)' : 'Global search (not available yet)'}
         className={cn(
-          'hidden md:flex flex-1 max-w-[420px] items-center gap-2.5 rounded-md border border-[var(--manara-mist)]',
+          'manara-header-search hidden md:flex flex-1 max-w-[420px] items-center gap-2.5 rounded-md border border-[var(--manara-mist)]',
           'bg-[var(--manara-white)] px-3 py-2 text-[var(--manara-ink-muted)]',
           'cursor-not-allowed select-none',
         )}
