@@ -245,14 +245,27 @@
 }
 
 [dir="rtl"] .manara-hero-art {
-  /* MANARA-UI-PAGE01-RTL-VISUAL-CLOSURE-01: per owner directive —
-     do NOT apply transform: scaleX(-1) to the lighthouse image.
-     The artwork's position is mirrored via inset-inline-end (which
-     automatically becomes "left" in RTL), but the image itself is NOT
-     flipped. The lighthouse keeps its original orientation.
-     The mask is mirrored so the fade-out edge faces the text side. */
-  inset-inline-end: auto;
-  inset-inline-start: 0;
+  /* MANARA-UI-PAGE01-ARABIC-HERO-BACKGROUND-FIX-01:
+     ROOT CAUSE: The prior rule set `inset-inline-end: auto; inset-inline-start: 0;`
+     which in RTL means `right: 0` — placing the artwork on the RIGHT side
+     (same side as the Arabic text), causing visual overlap between the
+     lighthouse artwork and the Arabic hero title + description + compose box.
+
+     FIX: In RTL, the artwork MUST be on the LEFT side (so the text on the
+     right is clear and unobstructed). The default LTR rule uses
+     `inset-inline-end: 0` which automatically becomes `left: 0` in RTL —
+     but the prior override cleared this with `inset-inline-end: auto` and
+     incorrectly forced the artwork to the right via `inset-inline-start: 0`.
+
+     Per owner directive: do NOT apply transform: scaleX(-1) to the
+     lighthouse image. The lighthouse keeps its original orientation.
+     The mask is mirrored so the fade-out edge faces the text side (right). */
+  inset-inline-end: 0;        /* RTL: left: 0 — artwork pinned to the LEFT */
+  inset-inline-start: auto;   /* Clear the right edge — let text occupy the right */
+  /* Mask: 270deg = right-to-left gradient direction.
+     transparent at 0% (right edge, near text) → fades to opaque at 27%.
+     This makes the right portion of the artwork transparent (faded out
+     near the text) while keeping the left portion fully visible. */
   mask-image: linear-gradient(270deg, transparent 0%, #000 27%);
   -webkit-mask-image: linear-gradient(270deg, transparent 0%, #000 27%);
 }

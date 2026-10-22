@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "Based on the provided image, here is the verification of the MANARA Page 01 Arabic (RTL) version:\n\n1.  **Lighthouse Artwork Position:** **Yes.** The lighthouse artwork is clearly positioned on the **LEFT** side of the hero section.\n2.  **Arabic Hero Title:** **Yes.** The title \"ملاذ تربوي أن...\" is on the **RIGHT** side and does not overlap with the artwork.\n3.  **Arabic Description:** **Yes.** The description text below the title is on the **RIGHT** side, positioned in a clear area without overlapping the artwork.\n4.  **Compose Box Position:** **Yes.** The input field (\"أدخل سؤالك البحثي...\") is located on the **RIGHT/center-right**, sitting comfortably in the open space.\n5.  **Artwork Visibility:** **Yes.** The lighthouse artwork remains fully visible, detailed, and aesthetically pleasing.\n6.  **Smooth Fade/Transition:** **Yes.** The background image fades smoothly into the light-colored background on the right side where the text resides, ensuring there are no harsh edges or visual conflicts.\n\n**Conclusion:** The RTL fix was successful. The layout correctly mirrors the design for Arabic readers, placing the visual element on the left and the interactive text elements on the right with excellent readability.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1792666734,
+  "id": "202610221858189f85f4dc7e08446c",
+  "model": "glm-5v-turbo",
+  "object": "chat.completion",
+  "request_id": "202610221858189f85f4dc7e08446c",
+  "usage": {
+    "completion_tokens": 283,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 6073,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "total_tokens": 6356
+  }
+}
