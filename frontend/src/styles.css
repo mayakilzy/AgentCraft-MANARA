@@ -822,3 +822,671 @@
     font-size: 9px;
   }
 }
+
+/* ============================================================
+   MANARA Page 02 — Investigation Workspace (SOURCE-INTEGRATION v1)
+   Visual structure ported from MANARA_PAGE_02_HTML_CSS_SOURCE_v1.zip
+   (immutable commit 697e711 on repo-info).
+   ============================================================ */
+
+.manara-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* === Investigation strip === */
+.manara-investigation-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 17px;
+  gap: 14px;
+  background: white;
+  border: 1px solid var(--manara-mist);
+  border-radius: 11px;
+  box-shadow: 0 1px 3px rgba(14, 48, 71, 0.04);
+  flex-wrap: wrap;
+}
+.manara-idgroup {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  flex-wrap: wrap;
+}
+.manara-square-symbol {
+  width: 39px;
+  height: 39px;
+  display: grid;
+  place-items: center;
+  background: #dff2fa;
+  border-radius: 10px;
+  color: #0d6181;
+  font-size: 25px;
+}
+.manara-investigation-strip strong {
+  font-family: var(--font-source-serif);
+  font-size: 15px;
+  white-space: nowrap;
+}
+.manara-status-pill {
+  background: #e4f7f1;
+  color: #008875;
+  padding: 5px 9px;
+  border-radius: 99px;
+  font-size: 10px;
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  white-space: nowrap;
+}
+.manara-status-pill i, .manara-live-pill i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #15b79e;
+  border-radius: 50%;
+}
+.manara-minor {
+  font-size: 10px;
+  color: #758599;
+}
+.manara-actions {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  flex-wrap: wrap;
+}
+.manara-muted-pill {
+  background: #f5f8fa;
+  border: 1px solid #e5edf0;
+  border-radius: 7px;
+  padding: 7px 10px;
+  font-size: 10px;
+  color: #536a7e;
+  white-space: nowrap;
+}
+.manara-next-button {
+  background: var(--manara-teal);
+  color: white;
+  border: none;
+  border-radius: 7px;
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.manara-next-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* === ID toggle row === */
+.manara-id-toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.manara-id-toggle {
+  background: #f7f9fb;
+  border: 1px solid #e8eef2;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--manara-ink-muted);
+  cursor: pointer;
+}
+.manara-id-toggle:hover {
+  color: var(--manara-teal);
+}
+.manara-blocker-warning {
+  padding: 7px 12px;
+  border-radius: 8px;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  color: #b42318;
+  font-size: 11px;
+}
+
+/* === Investigation dropdown === */
+.manara-investigation-dropdown {
+  background: white;
+  border: 1px solid var(--manara-mist);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(14, 48, 71, 0.08);
+}
+.manara-investigation-row {
+  width: 100%;
+  text-align: start;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.manara-investigation-row:hover {
+  background: var(--manara-mist);
+}
+.manara-investigation-row.is-current {
+  background: var(--manara-mist);
+  font-weight: 500;
+}
+
+/* === Main 2-column grid === */
+.manara-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 2.52fr) minmax(276px, 1fr);
+  gap: 10px;
+}
+.manara-primary-col, .manara-secondary-col {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+@media (max-width: 960px) {
+  .manara-columns { grid-template-columns: 1fr; }
+  .manara-secondary-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 740px) {
+  .manara-secondary-col { grid-template-columns: 1fr; }
+}
+
+/* === Panels === */
+.manara-panel {
+  border: 1px solid var(--manara-mist);
+  background: white;
+  border-radius: 11px;
+  box-shadow: 0 1px 3px rgba(14, 48, 71, 0.04);
+  padding: 15px 19px 14px;
+}
+.manara-sectiontop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.manara-panel-h2 {
+  font-family: var(--font-source-serif);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--manara-ink);
+}
+
+/* === Question panel === */
+.manara-question-h1 {
+  font: 600 clamp(22px, 2.4vw, 32px)/1.1 var(--font-source-serif);
+  letter-spacing: -.5px;
+  max-width: 690px;
+  margin: 8px 0;
+  color: var(--manara-ink);
+}
+.manara-question-desc {
+  font-size: 12px;
+  color: #687c95;
+  line-height: 1.5;
+  max-width: 725px;
+  margin: 0 0 12px;
+}
+.manara-tagline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+.manara-tagline span {
+  background: #eaf2f6;
+  color: #39566b;
+  padding: 5px 11px;
+  border-radius: 30px;
+  font-size: 10px;
+}
+
+/* === Workflow heading === */
+.manara-workflow-heading {
+  border-top: 1px solid var(--manara-mist);
+  margin-top: 17px;
+  padding-top: 9px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  color: #52677a;
+  font-size: 11px;
+  font-weight: 600;
+}
+.manara-workflow-caption {
+  font-size: 9px;
+  color: #8294a2;
+  font-weight: 400;
+}
+
+/* === 5-phase horizontal stepper === */
+.manara-phases {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 9px;
+}
+.manara-phase {
+  position: relative;
+  text-align: center;
+  padding: 0 4px;
+  min-width: 0;
+}
+.manara-phase:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 14px;
+  inset-inline-start: calc(50% + 18px);
+  width: calc(100% - 28px);
+  height: 2px;
+  background: #b6d5df;
+  z-index: 0;
+}
+.manara-phase-dot {
+  width: 28px;
+  height: 28px;
+  border: 2px solid #c8d8de;
+  background: #f0f4f7;
+  color: #456778;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 4px;
+  font-size: 11px;
+  font-weight: 700;
+  position: relative;
+  z-index: 1;
+}
+.manara-phase.completed .manara-phase-dot {
+  background: #006b89;
+  color: white;
+  border-color: #006b89;
+}
+.manara-phase.current .manara-phase-dot {
+  background: #00a7bb;
+  border-color: #008197;
+  color: white;
+  box-shadow: 0 0 0 5px #d8f5f6;
+}
+.manara-phase b {
+  display: block;
+  font-size: 10px;
+  color: #193950;
+  font-weight: 500;
+}
+.manara-phase small {
+  display: block;
+  font-size: 9px;
+  color: #69899b;
+}
+.manara-phase-states {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 5px;
+}
+.manara-phase-states button {
+  font-size: 8px;
+  border: 1px solid #dce9ed;
+  border-radius: 4px;
+  background: #f7fafb;
+  color: #496475;
+  padding: 2px 4px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.manara-phase-states button.is-current {
+  background: #c7f5f0;
+  border-color: #5cbcac;
+  color: #005b66;
+  font-weight: 700;
+}
+.manara-phase-states button:hover,
+.manara-phase-states button:focus-visible {
+  outline: 2px solid #4dbdbf;
+  outline-offset: 1px;
+}
+.manara-state-detail {
+  font-size: 10px;
+  color: #506a7c;
+  margin-top: 9px;
+  background: #f5f9fa;
+  border-radius: 6px;
+  padding: 6px 10px;
+  min-height: 27px;
+}
+.manara-state-detail-next {
+  color: var(--manara-teal);
+  font-weight: 500;
+}
+
+/* === Observatory (dark Intelligence Observatory surface) === */
+.manara-observatory {
+  background: radial-gradient(ellipse at 80% 120%, #0d4660, #001c2c 65%, #001624);
+  border-radius: 10px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  min-height: 348px;
+  padding: 15px 16px 13px;
+  box-shadow: 0 2px 4px rgba(6, 40, 61, 0.15);
+}
+[dir="rtl"] .manara-observatory {
+  background: radial-gradient(ellipse at 20% 120%, #0d4660, #001c2c 65%, #001624);
+}
+.manara-observatory::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 18% 34%, #6ce8f0 0 1px, transparent 2px),
+    radial-gradient(circle at 66% 12%, rgba(255,255,255,0.55) 0 1px, transparent 2px),
+    radial-gradient(circle at 80% 60%, rgba(83,205,247,0.5) 0 1px, transparent 2px);
+  background-size: 97px 73px, 143px 109px, 79px 131px;
+  opacity: 0.25;
+}
+.manara-obs-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.manara-obs-h2 {
+  font-family: var(--font-source-serif);
+  color: white;
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0;
+}
+.manara-live-pill {
+  border: 1px solid #24576a;
+  background: #123f50;
+  color: #d6eff4;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.manara-obs-hint {
+  font-size: 9px;
+  margin-inline-start: auto;
+  color: #9abcd1;
+}
+.manara-graph-bg {
+  position: relative;
+  z-index: 1;
+  min-height: 280px;
+}
+.manara-observatory-svg {
+  background: rgba(0, 19, 35, 0.5);
+  border-radius: 8px;
+}
+.manara-observatory-empty {
+  text-align: center;
+  padding: 40px 0;
+  color: white;
+}
+.manara-obs-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  position: relative;
+  z-index: 2;
+  margin-top: -16px;
+  max-width: 62%;
+}
+@media (max-width: 960px) {
+  .manara-obs-cards { max-width: 72%; }
+}
+@media (max-width: 740px) {
+  .manara-obs-cards { max-width: none; grid-template-columns: 1fr; gap: 6px; margin-top: 0; }
+}
+.manara-obs-card {
+  background: rgba(0, 43, 58, 0.92);
+  border: 1px solid #1c5266;
+  border-radius: 9px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 122px;
+}
+.manara-obs-card b {
+  font-size: 11px;
+  margin-bottom: 3px;
+  color: white;
+}
+.manara-obs-card span {
+  font-size: 9px;
+  color: #d7e9ef;
+}
+.manara-obs-card-muted {
+  color: #83afc1 !important;
+}
+.manara-node-panel {
+  position: relative;
+  z-index: 3;
+  margin-top: 12px;
+  min-width: 138px;
+  border: 1px solid #1e5c71;
+  border-radius: 8px;
+  background: rgba(1, 45, 66, 0.87);
+  padding: 9px 11px;
+  font-size: 10px;
+  color: #d9f8ff;
+}
+
+/* === Overview panel === */
+.manara-overview-panel { min-height: 310px; }
+.manara-overview-dl {
+  display: grid;
+  grid-template-columns: 40% 60%;
+  row-gap: 15px;
+  margin: 19px 0 0;
+  font-size: 11px;
+}
+.manara-overview-dl dt { color: #6b7990; }
+.manara-overview-dl dd {
+  margin: 0;
+  color: #455a70;
+  overflow-wrap: anywhere;
+}
+.manara-status-plain {
+  padding: 0;
+  background: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.manara-status-plain i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--manara-teal);
+  display: inline-block;
+}
+
+/* === Insights panel === */
+.manara-insights-panel { flex: 1; }
+.manara-insights-panel h2 { font-size: 16px; margin-bottom: 10px; }
+.manara-insight {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding: 9px 0;
+  border-top: 1px solid #edf0f2;
+}
+.manara-insight-icon {
+  height: 37px;
+  width: 37px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 20px;
+}
+.manara-purple { background: #f0e9fc; color: #744ac7; }
+.manara-cyan { background: #def7fb; color: #006b83; }
+.manara-amber { background: #fff0dc; color: #a36d0b; }
+.manara-coral { background: #ffe9e8; color: #bf4047; }
+.manara-blue { background: #e6f1ff; color: #2d6ca6; }
+.manara-insight div { min-width: 0; flex: 1; }
+.manara-insight b { display: block; font-size: 10px; color: var(--manara-ink); }
+.manara-insight small {
+  display: block;
+  color: #7a8999;
+  font-size: 9px;
+  line-height: 1.5;
+  margin-top: 2px;
+}
+.manara-sample-pill {
+  background: #eaf3f5;
+  color: #537181;
+  font-size: 8px;
+  padding: 3px 5px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* === Sources panel === */
+.manara-sources-panel { margin-top: 13px; padding: 13px 16px; }
+.manara-sources-panel .manara-sectiontop { margin-bottom: 9px; }
+.manara-source-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 9px;
+}
+@media (max-width: 1250px) { .manara-source-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 960px) { .manara-source-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 740px) { .manara-source-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 440px) { .manara-source-grid { grid-template-columns: 1fr; } }
+.manara-source {
+  border: 1px solid #e3eaee;
+  border-radius: 9px;
+  min-height: 101px;
+  padding: 10px 8px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  column-gap: 8px;
+  align-content: start;
+}
+.manara-source-icon {
+  grid-row: 1/4;
+  width: 37px;
+  height: 37px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-weight: 700;
+  font-size: 12px;
+}
+.manara-source-openalex { background: #105c91; }
+.manara-source-crossref { background: linear-gradient(140deg, #f7c54e 45%, #09afbf 45% 70%, #ec6e3b 70%); }
+.manara-source-arxiv { background: #b82d27; }
+.manara-source b { font-size: 10px; }
+.manara-source small {
+  font-size: 9px;
+  color: #7a8696;
+  grid-column: 2;
+}
+.manara-source-placeholder {
+  font-size: 9px;
+  color: #627d91;
+  grid-column: 2;
+  margin-top: 9px;
+}
+
+/* === Audit panel === */
+.manara-audit-panel { margin-top: 13px; }
+.manara-audit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.manara-audit-list { /* small custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--manara-mist) transparent;
+}
+.manara-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+.manara-scroll::-webkit-scrollbar-thumb { background: var(--manara-mist); border-radius: 3px; }
+.manara-audit-entry {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 10px;
+  background: #f7fafb;
+  border: 1px solid #e3eaee;
+  border-radius: 8px;
+}
+.manara-audit-kind {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--manara-teal);
+  padding: 2px 6px;
+  background: #eaf2f6;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.manara-audit-description {
+  font-size: 11px;
+  color: var(--manara-ink);
+  margin: 0;
+  font-family: var(--font-ibm-mono);
+}
+.manara-audit-meta {
+  font-size: 9px;
+  color: var(--manara-ink-muted);
+  margin: 2px 0 0;
+}
+
+/* === RTL adjustments === */
+[dir="rtl"] .manara-investigation-strip strong,
+[dir="rtl"] .manara-panel-h2,
+[dir="rtl"] .manara-question-h1,
+[dir="rtl"] .manara-obs-h2 {
+  font-family: var(--font-ibm-arabic);
+  letter-spacing: 0;
+}
+[dir="rtl"] .manara-phase:not(:last-child)::after {
+  inset-inline-start: auto;
+  inset-inline-end: calc(50% + 18px);
+}
+[dir="rtl"] .manara-workspace,
+[dir="rtl"] .manara-panel,
+[dir="rtl"] .manara-observatory,
+[dir="rtl"] .manara-audit-entry {
+  text-align: start;
+}
+
+/* === Mobile drawer fallback for narrow viewports === */
+@media (max-width: 440px) {
+  .manara-phase-states { display: none; }
+  .manara-phases { margin-bottom: 8px; }
+  .manara-question-h1 { font-size: 22px; }
+  .manara-actions { display: none; }
+}
