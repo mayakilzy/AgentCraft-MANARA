@@ -170,11 +170,11 @@ const ErrorState = React.forwardRef<
   return (
     <section
       ref={ref}
-      aria-label={t('error.title')}
       className="mt-10 md:mt-14"
     >
       <div
         role="alert"
+        aria-label={t('error.title')}
         className="rounded-[12px] border p-6 md:p-8"
         style={{
           background: 'var(--coverage-none-bg)',

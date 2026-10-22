@@ -810,6 +810,39 @@ class MoldArchitect:
 
     @staticmethod
     def _derive_domain(query: str) -> str:
+        """Derive a short ASCII-safe domain slug from the research query.
+
+        The returned string MUST satisfy the ``mold.id`` pattern
+        ``^mold\\.[a-z0-9][a-z0-9-]{1,80}$`` — i.e. lowercase ASCII
+        alphanumerics and hyphens only. The slug is composed into
+        ``mold_id = f"mold.{domain}-...""`` by the caller.
+
+        MANARA-UI-PAGE01-ARABIC-COMPOSE-FIX-01
+        ----------------------------------------
+        Previously, the first non-stopword token of the query was used
+        verbatim. For English/Turkish/ASCII queries this worked, but for
+        Arabic (and any non-ASCII script) the token contained non-ASCII
+        characters (e.g. ``قارن``), which violated the mold.id pattern
+        and caused HTTP 422 during compose.
+
+        Fix: when the chosen token contains non-ASCII characters, replace
+        it with a deterministic ASCII slug derived from a short hash of
+        the original token. This:
+        - Preserves the original Arabic query verbatim (no destructive
+          transliteration of the user's research question).
+        - Generates a valid internal ASCII identifier independent of the
+          query's language.
+        - Avoids collisions between different queries (different tokens
+          → different hashes → different slugs).
+        - Repeats the same query deterministically (same first token →
+          same slug), preserving idempotency.
+        - Preserves the existing identifier contract (pattern unchanged).
+        - Does not modify the shared schema.
+
+        For pure-ASCII tokens, the original behavior is preserved
+        (verbatim lowercase token), so existing English investigations
+        continue to produce the same domain slugs they always did.
+        """
         stopwords = {
             "the", "and", "for", "with", "from", "about", "into", "future",
             "study", "research", "investigation", "analysis", "report",
@@ -818,8 +851,29 @@ class MoldArchitect:
         tokens = re.findall(r"\w+", query.lower(), flags=re.UNICODE)
         for t in tokens:
             if len(t) >= 4 and t not in stopwords:
-                return str(t)
+                return MoldArchitect._ascii_slug(t)
         return "custom"
+
+    @staticmethod
+    def _ascii_slug(token: str) -> str:
+        """Return a pattern-safe ASCII slug for the given token.
+
+        For ASCII tokens: the token itself (lowercased), preserving the
+        historical English behavior.
+
+        For non-ASCII tokens (Arabic, Turkish dotted/undotted i, CJK, etc.):
+        a deterministic 8-character hex slug derived from SHA-256 of the
+        original token. This is stable (same input → same slug) and avoids
+        any destructive transliteration of the user's research question.
+        """
+        # Pattern: ^[a-z0-9][a-z0-9-]{1,80}$ (after the mold. prefix)
+        # ASCII-only check: a-z, 0-9, hyphen
+        if re.fullmatch(r"[a-z0-9][a-z0-9-]*", token):
+            return token
+        # Non-ASCII token — deterministic hash slug
+        import hashlib
+        h = hashlib.sha256(token.encode("utf-8")).hexdigest()[:8]
+        return f"q{h}"
 
 
 __all__ = [
