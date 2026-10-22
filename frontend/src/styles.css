@@ -1790,3 +1790,328 @@
     align-items: flex-end;
   }
 }
+
+/* ============================================================
+   MANARA Page 03 — Memory Explorer (OWNER-APPROVED SOURCE v1)
+   Visual source: MANARA_PAGE_03_OWNER_APPROVED_HTML_CSS_SOURCE_v1.zip
+   3-column analytical layout + bottom timeline/topics grid.
+   ============================================================ */
+
+.manara-me { display: flex; flex-direction: column; gap: 14px; }
+
+/* === Heading === */
+.manara-me-heading { padding: 0 12px 17px; }
+.manara-me-overline {
+  font-size: 10px; color: var(--manara-teal); letter-spacing: 2px;
+  font-weight: 700; margin-bottom: 7px;
+}
+.manara-me-title {
+  font: 500 clamp(28px, 3vw, 41px)/1.16 var(--font-source-serif), Georgia, serif;
+  margin: 0; color: var(--manara-ink);
+}
+[dir="rtl"] .manara-me-title { font-family: var(--font-arabic); font-weight: 700; }
+.manara-me-subtitle {
+  margin: 5px 0; color: var(--manara-ink-muted);
+  font-size: 15px;
+}
+[dir="rtl"] .manara-me-subtitle { text-align: right; }
+
+/* === Primary 3-column grid === */
+.manara-me-primary-grid {
+  display: grid;
+  grid-template-columns: minmax(285px, 0.82fr) minmax(400px, 1.18fr) minmax(320px, 0.94fr);
+  gap: 10px; align-items: stretch;
+}
+@media (max-width: 1150px) {
+  .manara-me-primary-grid {
+    grid-template-columns: minmax(260px, 1fr) minmax(375px, 1.3fr);
+  }
+  .manara-me-details-panel { grid-column: 1 / -1; }
+}
+@media (max-width: 780px) {
+  .manara-me-primary-grid { grid-template-columns: 1fr; }
+}
+
+/* === Panels === */
+.manara-me-panel {
+  background: white; border: 1px solid var(--manara-mist);
+  border-radius: 14px; overflow: hidden; min-width: 0;
+}
+
+/* === Panel head === */
+.manara-me-panel-head {
+  min-height: 53px; padding: 0 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid #edf0f3;
+}
+.manara-me-panel-head h2 { font-size: 14px; font-weight: 700; margin: 0; }
+.manara-me-teal { color: var(--manara-teal); font-size: 20px; margin-right: 7px; }
+[dir="rtl"] .manara-me-teal { margin-right: 0; margin-left: 7px; }
+
+/* === Tabs === */
+.manara-me-tabs {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 4px; background: #f7f9fa; padding: 3px;
+  border-radius: 7px; margin-bottom: 10px;
+}
+.manara-me-tab {
+  height: 35px; border: 0; background: transparent;
+  color: #58718a; border-radius: 5px; font-size: 12px;
+  cursor: pointer;
+}
+.manara-me-tab.active {
+  background: linear-gradient(160deg, #068c9f, #00556e);
+  color: white; font-weight: 700;
+}
+
+/* === Find row (search + filter button) === */
+.manara-me-find-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.manara-me-find {
+  height: 35px; border: 1px solid var(--manara-mist);
+  border-radius: 6px; display: flex; align-items: center;
+  gap: 8px; flex: 1; color: var(--manara-ink-muted); padding: 0 10px;
+}
+.manara-me-find input {
+  border: 0; outline: none; min-width: 0; width: 100%;
+  font-size: 11px; background: transparent; color: var(--manara-ink);
+}
+.manara-me-square-btn {
+  border: 1px solid var(--manara-mist); background: #fff;
+  border-radius: 6px; color: var(--manara-ink-muted);
+  min-width: 38px; height: 35px; display: grid; place-items: center;
+  cursor: pointer;
+}
+.manara-me-square-btn:hover { background: var(--manara-mist); }
+
+/* === Filters === */
+.manara-me-filters {
+  display: flex; gap: 7px; margin: 0 0 10px;
+}
+.manara-me-filters select {
+  min-width: 0; background: #fff; border: 1px solid var(--manara-mist);
+  border-radius: 6px; color: var(--manara-ink); padding: 7px; font-size: 11px;
+  flex: 1;
+}
+
+/* === List meta === */
+.manara-me-list-meta {
+  display: flex; justify-content: space-between; align-items: center;
+  color: var(--manara-ink); font-size: 11px; margin: 0 3px 8px;
+}
+
+/* === Evidence list === */
+.manara-me-evidence-list {
+  display: flex; flex-direction: column;
+  max-height: 500px; overflow-y: auto;
+}
+.manara-me-evidence-list { scrollbar-width: thin; scrollbar-color: var(--manara-mist) transparent; }
+.manara-me-evidence-list::-webkit-scrollbar { width: 6px; }
+.manara-me-evidence-list::-webkit-scrollbar-thumb { background: var(--manara-mist); border-radius: 3px; }
+
+.manara-me-evidence-item {
+  display: flex; gap: 11px; align-items: center;
+  border: 1px solid transparent; border-bottom-color: #edf1f3;
+  border-radius: 8px; background: white;
+  padding: 8px 6px; text-align: start; width: 100%;
+  min-height: 72px; color: var(--manara-ink); cursor: pointer;
+  transition: background 0.15s;
+}
+.manara-me-evidence-item:hover, .manara-me-evidence-item.active {
+  background: #e9f6f7; border-color: transparent;
+}
+[dir="rtl"] .manara-me-evidence-item { text-align: right; }
+.manara-me-evidence-item .manara-me-doc-icon {
+  width: 32px; height: 32px; flex-shrink: 0;
+  display: grid; place-items: center;
+  color: var(--manara-teal);
+}
+.manara-me-evidence-item .manara-me-item-copy { flex: 1; min-width: 0; }
+.manara-me-evidence-item b {
+  display: block; font-weight: 600; font-size: 12px; line-height: 1.4;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.manara-me-evidence-item small {
+  display: flex; gap: 14px; font-size: 10px;
+  color: var(--manara-ink-muted); margin-top: 4px;
+}
+
+/* === Claim marks === */
+.manara-me-claim-mark {
+  width: 28px; height: 28px; border-radius: 50%;
+  color: white; display: grid; place-items: center;
+  flex-shrink: 0; background: #72c69b; font-size: 16px;
+}
+.manara-me-claim-mark.candidate { background: #9baeb8; }
+.manara-me-claim-mark.supported { background: #72c69b; }
+.manara-me-claim-mark.contested { background: #eb8089; }
+.manara-me-claim-mark.refuted { background: #c43f51; }
+.manara-me-claim-mark.superseded { background: #c4d1d9; }
+
+/* === Claim status === */
+.manara-me-claim-status {
+  display: block; text-align: end; border-radius: 12px;
+  width: max-content; margin-left: auto;
+  padding: 4px 8px; font-size: 10px;
+  background: #d5f3e3; color: #187d57;
+}
+.manara-me-claim-status.candidate { background: #f0f4f6; color: #5a6c75; }
+.manara-me-claim-status.contested { background: #ffeaeb; color: #c43f51; }
+.manara-me-claim-status.refuted { background: #ffe0e2; color: #a03040; }
+.manara-me-claim-status.superseded { background: #f0f4f6; color: #7a8a94; }
+[dir="rtl"] .manara-me-claim-status { margin-left: 0; margin-right: auto; }
+
+/* === Graph panel === */
+.manara-me-graph-panel .manara-me-panel-head { height: 55px; }
+.manara-me-graph-area {
+  position: relative; height: 490px; overflow: hidden;
+  background: radial-gradient(ellipse at center, #fff 25%, #f8fbfc 75%);
+}
+.manara-me-graph-svg {
+  width: 100%; height: 100%; display: block;
+  touch-action: none; direction: ltr;
+}
+.manara-me-graph-svg text { direction: ltr; unicode-bidi: plaintext; }
+.manara-me-graph-empty {
+  text-align: center; padding: 60px 0; color: var(--manara-ink-muted);
+}
+.manara-me-graph-legend {
+  min-height: 48px; padding: 10px 12px;
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+  border-top: 1px solid var(--manara-mist);
+  font-size: 10px; color: var(--manara-ink-muted);
+  direction: ltr;
+}
+.manara-me-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+.manara-me-cyan { background: #0f849d; }
+.manara-me-coral { background: #e97b83; }
+.manara-me-line { width: 13px; border-top: 2px solid; display: inline-block; vertical-align: middle; margin-right: 5px; }
+.manara-me-turquoise { color: #109bac; }
+.manara-me-orange { color: #ef9b40; }
+.manara-me-gray { color: #c4d1d9; }
+
+/* === Details panel === */
+.manara-me-details-panel .manara-me-panel-head { height: 55px; }
+.manara-me-bare {
+  background: none; border: 0; color: var(--manara-teal);
+  font-size: 19px; cursor: pointer;
+}
+.manara-me-detail-tabs {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid var(--manara-mist); margin: 4px 12px;
+}
+.manara-me-detail-tabs button {
+  height: 38px; font-size: 11px; border: 0;
+  border-bottom: 3px solid transparent;
+  color: var(--manara-ink-muted); background: white; cursor: pointer;
+}
+.manara-me-detail-tabs button.active {
+  border-bottom-color: var(--manara-teal);
+  color: var(--manara-ink); font-weight: 700;
+}
+.manara-me-detail-content { min-height: 300px; }
+.manara-me-detail-main { padding: 14px; }
+.manara-me-detail-main h3 { font-size: 14px; line-height: 1.45; margin: 2px 0 12px; }
+.manara-me-detail-main small {
+  display: block; color: var(--manara-ink-muted);
+  font-size: 11px; margin: 8px 0; font-family: var(--font-ibm-mono);
+}
+.manara-me-detail-summary {
+  margin-top: 15px; padding-bottom: 13px;
+  border-bottom: 1px solid var(--manara-mist);
+}
+.manara-me-section-title { font-size: 13px; margin: 0 0 9px; font-weight: 600; }
+.manara-me-claim-row {
+  border-top: 1px solid var(--manara-mist);
+  display: flex; gap: 8px; padding: 13px 1px;
+  align-items: center; font-size: 11px;
+}
+.manara-me-claim-title { flex: 1; line-height: 1.55; }
+.manara-me-detail-alternate {
+  padding: 18px; font-size: 13px; color: var(--manara-ink-muted);
+  min-height: 300px;
+}
+[dir="rtl"] .manara-me-detail-alternate { text-align: right; }
+
+/* === Bottom grid: Timeline + Related Topics === */
+.manara-me-bottom-grid {
+  display: grid; grid-template-columns: 1.5fr 1fr;
+  gap: 14px; margin-top: 14px;
+}
+@media (max-width: 1150px) {
+  .manara-me-bottom-grid { grid-template-columns: 1fr; }
+}
+.manara-me-timeline-panel, .manara-me-related-panel { min-height: 190px; }
+.manara-me-timeline-track { padding: 7px 14px 15px; }
+.manara-me-timeline-events {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+.manara-me-time-event { position: relative; padding-top: 21px; }
+.manara-me-time-event:before {
+  content: ''; position: absolute; top: -7px; left: 50%;
+  width: 10px; height: 10px; background: var(--manara-teal);
+  border: 2px solid white; border-radius: 50%;
+}
+.manara-me-time-card {
+  border: 1px solid var(--manara-mist); border-radius: 8px;
+  padding: 11px; min-height: 88px; font-size: 11px;
+  color: var(--manara-ink-muted); line-height: 1.5;
+}
+.manara-me-time-card.active { background: #e9f7f7; }
+.manara-me-time-card strong {
+  display: block; color: var(--manara-ink); margin-bottom: 6px;
+  font-family: var(--font-ibm-mono);
+}
+
+/* === Bitemporal replay === */
+.manara-me-bitemporal-replay {
+  padding: 14px; border-top: 1px solid var(--manara-mist);
+}
+.manara-me-cutoff-input {
+  border: 1px solid var(--manara-mist); border-radius: 6px;
+  padding: 7px; font-size: 11px; color: var(--manara-ink);
+}
+.manara-me-replay-btn {
+  background: var(--manara-teal); color: white; border: 0;
+  border-radius: 6px; padding: 7px 14px; font-size: 11px;
+  cursor: pointer; font-weight: 600;
+}
+.manara-me-replay-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* === Topics grid === */
+.manara-me-topics-grid {
+  padding: 0 12px 12px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 7px;
+}
+.manara-me-topic-card {
+  display: flex; gap: 8px; align-items: center; text-align: start;
+  border: 1px solid var(--manara-mist); border-radius: 8px;
+  background: #fff; padding: 10px 8px; min-width: 0;
+  cursor: pointer;
+}
+[dir="rtl"] .manara-me-topic-card { text-align: right; }
+.manara-me-topic-icon {
+  flex: 0 0 34px; height: 34px;
+  display: grid; place-items: center;
+  border-radius: 50%; background: #e6f5f7;
+  color: var(--manara-teal);
+}
+.manara-me-topic-card b { font-size: 10px; font-weight: 500; display: block; }
+.manara-me-topic-card small { font-size: 10px; color: var(--manara-ink-muted); }
+
+/* === Responsive: tablet === */
+@media (max-width: 1370px) {
+  .manara-me-primary-grid {
+    grid-template-columns: minmax(245px, 0.85fr) minmax(350px, 1.2fr) minmax(270px, 0.9fr);
+  }
+}
+
+/* === Responsive: mobile === */
+@media (max-width: 780px) {
+  .manara-me-graph-area { height: 450px; }
+  .manara-me-title { font-size: 32px; }
+  .manara-me-subtitle { font-size: 13px; }
+  .manara-me-topics-grid { grid-template-columns: repeat(2, 1fr); }
+  .manara-me-timeline-events { grid-template-columns: 1fr; }
+}
