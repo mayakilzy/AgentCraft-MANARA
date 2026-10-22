@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import {
-  Home,
+  Home as HomeIcon,
   FlaskConical,
   Database,
   Layers,
@@ -15,6 +15,8 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  Telescope,
+  HelpCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from './i18n';
@@ -26,6 +28,10 @@ import { Pill } from './Badges';
    - Desktop ≥1024px : expanded 240px, collapsible to 64px
    - Tablet 768-1023 : collapsed 64px, expandable
    - Mobile  <768    : hidden, opens as slide-out drawer
+
+   MANARA-UI-PAGE01-RTL-VISUAL-CLOSURE-01: reconciled with approved
+   HTML reference. Section names + per-nav-item subtitles + Intelligence
+   Observatory teaser + Help link match the approved composition.
    ============================================================ */
 
 type NavKey =
@@ -39,30 +45,45 @@ type NavKey =
   | 'foresight'
   | 'publishing';
 
+// Per approved reference: 3 sections (Exploration / Knowledge & Analysis / Factory Management)
+// Per approved reference: each nav item has a subtitle
+type NavSection = 'exploration' | 'knowledge' | 'factory';
+
 interface NavItem {
   key: NavKey;
   icon: React.ComponentType<{ className?: string }>;
-  section: 'intelligence' | 'factory' | 'studio';
+  section: NavSection;
+  // Subtitle shown under the nav item label (per approved reference)
+  subtitle_en: string;
+  subtitle_ar: string;
   active?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { key: 'home', icon: Home, section: 'intelligence', active: true },
-  { key: 'workspace', icon: FlaskConical, section: 'intelligence' },
-  { key: 'memory', icon: Database, section: 'intelligence' },
-  { key: 'registry', icon: Layers, section: 'factory' },
-  { key: 'foundry', icon: Factory, section: 'factory' },
-  { key: 'molds', icon: Boxes, section: 'factory' },
-  { key: 'agents', icon: Bot, section: 'factory' },
-  { key: 'foresight', icon: TrendingUp, section: 'studio' },
-  { key: 'publishing', icon: BookOpenText, section: 'studio' },
+  // EXPLORATION
+  { key: 'home', icon: HomeIcon, section: 'exploration', active: true,
+    subtitle_en: 'Start a new investigation', subtitle_ar: 'ابدأ تحقيقاً جديداً' },
+  { key: 'workspace', icon: FlaskConical, section: 'exploration',
+    subtitle_en: 'Live research workspace', subtitle_ar: 'مساحة بحث حية' },
+  // KNOWLEDGE & ANALYSIS
+  { key: 'memory', icon: Database, section: 'knowledge',
+    subtitle_en: 'Evidence & knowledge', subtitle_ar: 'أدلة ومعرفة' },
+  { key: 'foresight', icon: TrendingUp, section: 'knowledge',
+    subtitle_en: 'Trends & future outlooks', subtitle_ar: 'اتجاهات وتوقعات مستقبلية' },
+  { key: 'publishing', icon: BookOpenText, section: 'knowledge',
+    subtitle_en: 'Research reports', subtitle_ar: 'تقارير بحثية' },
+  // FACTORY MANAGEMENT
+  { key: 'registry', icon: Layers, section: 'factory',
+    subtitle_en: 'Available tools & skills', subtitle_ar: 'أدوات ومهارات متاحة' },
+  { key: 'foundry', icon: Factory, section: 'factory',
+    subtitle_en: 'Research data sources', subtitle_ar: 'مصادر بيانات البحث' },
+  { key: 'molds', icon: Boxes, section: 'factory',
+    subtitle_en: 'Research templates', subtitle_ar: 'قوالب بحثية' },
+  { key: 'agents', icon: Bot, section: 'factory',
+    subtitle_en: 'Agents & execution logs', subtitle_ar: 'وكلاء وسجلات التنفيذ' },
 ];
 
-const SECTION_ORDER: Array<'intelligence' | 'factory' | 'studio'> = [
-  'intelligence',
-  'factory',
-  'studio',
-];
+const SECTION_ORDER: Array<NavSection> = ['exploration', 'knowledge', 'factory'];
 
 interface SidebarProps {
   collapsed: boolean;
@@ -85,6 +106,7 @@ export function Sidebar({
   workspaceEnabled,
 }: SidebarProps) {
   const { t, dir } = useLanguage();
+  const isAr = dir === 'rtl';
 
   const content = (
     <div
@@ -137,9 +159,7 @@ export function Sidebar({
               <ul className="space-y-0.5">
                 {items.map((item) => {
                   const Icon = item.icon;
-                  // Determine if this item is clickable: home always, workspace+memory when investigation exists
                   const isClickable = item.key === 'home' || (workspaceEnabled && (item.key === 'workspace' || item.key === 'memory'));
-                  // Determine if this is the current active page
                   const isActive = activePage === item.key;
                   const isLocked = !isClickable;
                   return (
@@ -156,11 +176,11 @@ export function Sidebar({
                         aria-current={isActive ? 'page' : undefined}
                         title={collapsed ? t(`nav.${item.key}`) : undefined}
                         className={cn(
-                          'group relative flex items-center gap-3 rounded-md px-3 py-2 font-ui text-[13px] transition-colors',
+                          'group relative flex items-center gap-3 rounded-md px-3 py-2 transition-colors',
                           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--manara-teal)]',
                           collapsed && 'justify-center px-0',
                           isActive
-                            ? 'bg-[var(--manara-teal)]/10 text-[var(--manara-ink)] font-medium'
+                            ? 'bg-[var(--manara-teal)]/10 text-[var(--manara-ink)]'
                             : 'text-[var(--manara-ink-light)] hover:bg-[var(--manara-mist)] hover:text-[var(--manara-ink)]',
                         )}
                       >
@@ -173,7 +193,12 @@ export function Sidebar({
                         )}
                         <Icon className={cn('size-[18px] shrink-0', isActive && 'text-[var(--manara-teal)]')} />
                         {!collapsed && (
-                          <span className="flex-1 truncate">{t(`nav.${item.key}`)}</span>
+                          <span className="flex-1 min-w-0 flex flex-col leading-tight">
+                            <span className="font-ui text-[13px] font-medium truncate">{t(`nav.${item.key}`)}</span>
+                            <span className="font-ui text-[10px] text-[var(--manara-ink-muted)] truncate">
+                              {isAr ? item.subtitle_ar : item.subtitle_en}
+                            </span>
+                          </span>
                         )}
                         {!collapsed && isLocked && (
                           <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-ui text-[9.5px] font-medium uppercase tracking-[0.08em] text-[var(--manara-ink-muted)] border border-[var(--manara-mist)] bg-[var(--manara-mist)]/40">
@@ -191,19 +216,46 @@ export function Sidebar({
         })}
       </nav>
 
-      {/* Footer — demo mode */}
+      {/* Footer — Intelligence Observatory teaser + Help link (per approved reference) */}
       <div
         className={cn(
-          'border-t border-[var(--manara-mist)] px-4 py-3',
+          'border-t border-[var(--manara-mist)] px-3 py-3',
           collapsed && 'px-2',
         )}
       >
         {collapsed ? (
-          <div className="flex justify-center" title={t('demo.mode')}>
-            <span className="size-1.5 rounded-full bg-[var(--manara-brass)]" />
+          <div className="flex flex-col items-center gap-2">
+            <div title="Intelligence Observatory" className="flex size-8 items-center justify-center rounded-md"
+              style={{ background: 'radial-gradient(circle at 50% 52%, #44abb6, #053049 36%, #061a2b 70%)', color: '#ade7f2' }}>
+              <Telescope className="size-4" />
+            </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-3">
+            {/* Observatory teaser card */}
+            <div className="flex items-center gap-2.5 rounded-md border border-[var(--manara-mist)] bg-white p-2">
+              <div
+                aria-hidden
+                className="flex size-9 items-center justify-center rounded-md shrink-0"
+                style={{ background: 'radial-gradient(circle at 50% 52%, #44abb6, #053049 36%, #061a2b 70%)', color: '#ade7f2' }}
+              >
+                <Telescope className="size-4" />
+              </div>
+              <div className="flex flex-col leading-tight min-w-0">
+                <span className="font-serif text-[12px] font-semibold text-[var(--manara-ink)] truncate">
+                  {isAr ? 'مرصد المعلومات' : 'Intelligence Observatory'}
+                </span>
+                <span className="font-ui text-[10px] text-[var(--manara-ink-muted)] truncate">
+                  {isAr ? 'عروض تحليلية معمقة' : 'Deep analytical views'}
+                </span>
+              </div>
+            </div>
+            {/* Help link */}
+            <a href="#" onClick={(e) => e.preventDefault()} className="flex items-center gap-1.5 font-ui text-[11px] text-[var(--manara-ink-light)] hover:text-[var(--manara-teal)] transition-colors">
+              <HelpCircle className="size-3" />
+              {isAr ? 'المساعدة والتوثيق' : 'Help & Documentation'}
+            </a>
+            {/* Demo mode pill (preserved per OPEN-04) */}
             <Pill
               variant="brass"
               className="w-fit border-[var(--manara-mist)] bg-[var(--manara-mist)]/40 text-[var(--manara-brass)]"

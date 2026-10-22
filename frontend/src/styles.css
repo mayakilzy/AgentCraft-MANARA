@@ -103,6 +103,9 @@
   [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3,
   [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6 {
     letter-spacing: 0;
+    /* MANARA-UI-PAGE01-RTL-VISUAL-CLOSURE-01: Arabic headings use IBM Plex Sans Arabic
+       because Source Serif 4 does not shape Arabic letters correctly. */
+    font-family: var(--font-ibm-arabic), "IBM Plex Sans Arabic", system-ui, sans-serif;
   }
 
   ::selection {
@@ -234,9 +237,16 @@
 }
 
 [dir="rtl"] .manara-hero-art {
+  /* MANARA-UI-PAGE01-RTL-VISUAL-CLOSURE-01: per owner directive —
+     do NOT apply transform: scaleX(-1) to the lighthouse image.
+     The artwork's position is mirrored via inset-inline-end (which
+     automatically becomes "left" in RTL), but the image itself is NOT
+     flipped. The lighthouse keeps its original orientation.
+     The mask is mirrored so the fade-out edge faces the text side. */
   inset-inline-end: auto;
   inset-inline-start: 0;
-  transform: scaleX(-1);
+  mask-image: linear-gradient(270deg, transparent 0%, #000 27%);
+  -webkit-mask-image: linear-gradient(270deg, transparent 0%, #000 27%);
 }
 
 .manara-hero-copy {
@@ -279,6 +289,12 @@
 
 [dir="rtl"] .manara-hero-title {
   letter-spacing: 0;
+  /* MANARA-UI-PAGE01-RTL-VISUAL-CLOSURE-01: Arabic must use IBM Plex Sans Arabic,
+     not Source Serif 4 (which doesn't shape Arabic correctly — letters render
+     disconnected). The base .manara-hero-title rule sets font-family to
+     var(--font-source-serif); this RTL override switches to Arabic font. */
+  font-family: var(--font-ibm-arabic), "IBM Plex Sans Arabic", system-ui, sans-serif;
+  font-weight: 600;
 }
 
 .manara-hero-accent {

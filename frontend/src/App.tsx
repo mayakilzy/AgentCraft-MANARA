@@ -123,14 +123,20 @@ function ManaraShell() {
                   overLimit={overLimit}
                 />
                 <div className="mx-auto w-full max-w-6xl px-4 md:px-8 pb-8">
-                <ComposeResultCard
-                  ref={resultRef}
-                  submitting={submitting}
-                  result={result}
-                  error={error}
-                  onRetry={() => { setError(null); handleSubmit(); }}
-                  onClear={handleClear}
-                />
+                {/* MANARA-UI-PAGE01-RTL-VISUAL-CLOSURE-01: hide ComposeResultCard
+                    entirely before the first compose attempt so the page matches
+                    the approved layout. Only render when there is something to show
+                    (submitting / result / error). */}
+                {(submitting || result || error) && (
+                  <ComposeResultCard
+                    ref={resultRef}
+                    submitting={submitting}
+                    result={result}
+                    error={error}
+                    onRetry={() => { setError(null); handleSubmit(); }}
+                    onClear={handleClear}
+                  />
+                )}
                 {result && investigationId && (
                   <div className="mt-4 text-center">
                     <button

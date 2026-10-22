@@ -88,6 +88,10 @@ const en: Dict = {
   'nav.section.intelligence': 'Intelligence',
   'nav.section.factory': 'Factory',
   'nav.section.studio': 'Studio',
+  // MANARA-UI-PAGE01-RTL-VISUAL-CLOSURE-01: per approved reference section names
+  'nav.section.exploration': 'Exploration',
+  'nav.section.knowledge': 'Knowledge & Analysis',
+  // 'factory' already defined above
 
   'demo.mode': 'Single-tenant demo mode',
   'demo.version': 'v0.1 · UI Preview',
@@ -236,8 +240,11 @@ const ar: Dict = {
   'nav.comingLater': 'قريباً',
   'nav.active': 'نشط',
   'nav.section.intelligence': 'الذكاء',
-  'nav.section.factory': 'المصنع',
+  'nav.section.factory': 'إدارة المصنع',
   'nav.section.studio': 'الاستوديو',
+  // MANARA-UI-PAGE01-RTL-VISUAL-CLOSURE-01: per approved reference section names
+  'nav.section.exploration': 'الاستكشاف',
+  'nav.section.knowledge': 'المعرفة والتحليل',
 
   'demo.mode': 'وضع العرض أحادي المستأجر',
   'demo.version': 'الإصدار 0.1 · معاينة الواجهة',
