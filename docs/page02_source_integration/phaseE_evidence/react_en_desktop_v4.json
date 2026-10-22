@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "Verification of MANARA React Investigation Workspace (Populated State):\n\n1.  **Knowledge Graph:** **Confirmed.** The \"Investigation Process\" panel displays a populated graph with multiple luminous cyan nodes connected by curved, colored edges (labeled with relationships like \"supports,\" \"qualifies,\" and \"evidenced\").\n2.  **Evidence Items:** **Confirmed.** The \"Investigation Overview\" sidebar explicitly lists **5** Evidence items.\n3.  **Audit Panel:** **Confirmed.** The \"Audit & Transition History\" section at the bottom contains **13 entries** (e.g., CLAIM_PROMOTED events).\n4.  **Workflow Phase:** **Confirmed.** In the \"Investigation Lifecycle\" stepper, Phase **1 (Discovery)** is highlighted in teal/green and labeled as **scoped**, indicating it is the current active phase.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1792652275,
+  "id": "20261022145748c166516e045a43c5",
+  "model": "glm-5v-turbo",
+  "object": "chat.completion",
+  "request_id": "20261022145748c166516e045a43c5",
+  "usage": {
+    "completion_tokens": 175,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 5833,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "total_tokens": 6008
+  }
+}

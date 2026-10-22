@@ -1,0 +1,34 @@
+{
+  "mission": "MANARA-UI-PAGE02-SOURCE-INTEGRATION-01",
+  "captured_at": "2026-10-22T07:00:00Z",
+  "viewports": [
+    {"name": "en_desktop_1536x1024", "width": 1536, "height": 1024, "lang": "en", "status": "captured", "files": ["full", "viewport"]},
+    {"name": "ar_desktop_1536x1024", "width": 1536, "height": 1024, "lang": "ar", "status": "captured", "files": ["full", "viewport"]},
+    {"name": "en_tablet_768x1024", "width": 768, "height": 1024, "lang": "en", "status": "captured", "files": ["full", "viewport"]},
+    {"name": "ar_tablet_768x1024", "width": 768, "height": 1024, "lang": "ar", "status": "captured", "files": ["full", "viewport"]},
+    {"name": "en_mobile_375x812", "width": 375, "height": 812, "lang": "en", "status": "captured", "files": ["full", "viewport"]},
+    {"name": "ar_mobile_375x812", "width": 375, "height": 812, "lang": "ar", "status": "captured", "files": ["full", "viewport"]}
+  ],
+  "verification_gates": {
+    "audit_panel_populated": {"expected": ">=2 entries", "actual": "13 entries (2 transitions + 11 decisions)", "status": "PASS"},
+    "evidence_count_populated": {"expected": ">0", "actual": "5 evidence items", "status": "PASS"},
+    "knowledge_graph_populated": {"expected": "curved edges + luminous nodes", "actual": "6 edges + 10 nodes rendered", "status": "PASS"},
+    "rtl_compliance": {"expected": "logical properties, no scaleX(-1), IBM Plex Sans Arabic, no horizontal overflow", "actual": "PASS — all checks pass", "status": "PASS"},
+    "svg_text_rtl_fix": {"expected": "SVG text labels not mirrored in RTL", "actual": "PASS — direction: ltr + unicode-bidi: plaintext on SVG", "status": "PASS"}
+  },
+  "vlm_verifications": {
+    "three_way_comparison_fidelity": "MEDIUM — all major layout regions present; differences documented in README as intentional",
+    "ar_rtl_verification": "PASS — layout mirrored, IBM Plex Sans Arabic, SVG not mirrored (after fix)",
+    "en_desktop_populated": "PASS — Knowledge graph populated, 5 evidence items, 13 audit entries, phase 1 scoped current"
+  },
+  "test_seeded_investigation": {
+    "id": "inv-fb1f820205e192f3",
+    "topic": "How are additive manufacturing technologies transforming prosthetics?",
+    "workflow_state": "scoped",
+    "transitions": 2,
+    "evidence": 5,
+    "claims": 5,
+    "edges": 6,
+    "decisions": 11
+  }
+}

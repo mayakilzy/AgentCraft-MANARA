@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "| Region | Status |\n| :--- | :--- |\n| (a) Sidebar with brand + nav | ✓ |\n| (b) Header with crumb + surface switch + language | Δ |\n| (c) Research Question panel | ✓ |\n| (d) 5-phase horizontal stepper with state pills | ✓ |\n| (e) Observatory dark graph with curved edges + luminous nodes | Δ |\n| (f) Overview panel (Status/Template/Mode/etc) | ✓ |\n| (g) Key Insights panel (5 colored insights) | Δ |\n| (h) Sources panel (provider cards) | ✓ |\n| (i) Audit history | ✓ |\n\n**Overall Fidelity: MEDIUM**\nThe React rendering successfully captures the core layout structure and major components of the approved design, but it introduces significant deviations in the visual styling of the observatory graph, the data density of the insights and overview panels, and the header's interactive elements.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1792652527,
+  "id": "20261022150154e48575620f8f45f0",
+  "model": "glm-5v-turbo",
+  "object": "chat.completion",
+  "request_id": "20261022150154e48575620f8f45f0",
+  "usage": {
+    "completion_tokens": 194,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 13697,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "total_tokens": 13891
+  }
+}

@@ -1,0 +1,14 @@
+=== E2E Journey Test Output ===
+
+============================================================
+G09 Browser E2E Test Results
+============================================================
+  ✓ Test 1: Homepage loads — title contains MANARA
+  ✓ Test 2: Status banner visible with capabilities
+  ✓ Test 3: Investigation input accepts text (Arabic/English)
+  ✗ Test 4: Submit query failed: 
+  △ Test 5: Coverage/gaps section not found (may be empty)
+  △ Test 6: Registry tab not found
+  △ Test 7: Publishing tab not found
+
+3 passed, 1 failed, 3 skipped
