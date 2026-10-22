@@ -1,0 +1,90 @@
+{
+  "mission": "MANARA-UI-PAGE02-PRE-ACCEPTANCE-01",
+  "captured_at": "2026-10-22T08:21:03.537368+00:00",
+  "frontend_url": "http://127.0.0.1:5173",
+  "backend_url": "http://127.0.0.1:8000",
+  "seeded_investigation_id": "inv-765317ea38122051",
+  "summary": {
+    "total": 15,
+    "passed": 15,
+    "failed": 0,
+    "skipped": 0
+  },
+  "results": [
+    {
+      "test": "1. Homepage loads (Page 01 regression)",
+      "status": "pass",
+      "detail": "title='MANARA \u00b7 Adaptive Intelligence Factory'"
+    },
+    {
+      "test": "2. Status banner visible + Online (Page 01 regression)",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "test": "3. Investigation input accepts text (Page 01 regression)",
+      "status": "pass",
+      "detail": "value len=60"
+    },
+    {
+      "test": "4. Submit query \u2014 compose returns Investigation ID (Page 01 regression)",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "test": "5. Navigate to Workspace + select seeded investigation",
+      "status": "pass",
+      "detail": "audit_entries=15"
+    },
+    {
+      "test": "6. Loading populated evidence and claims",
+      "status": "pass",
+      "detail": "evidence=5, sources=5"
+    },
+    {
+      "test": "7. Knowledge graph displays backend-sourced edges",
+      "status": "pass",
+      "detail": "edges=6, nodes=9"
+    },
+    {
+      "test": "8. Select knowledge graph node + view details",
+      "status": "pass",
+      "detail": "panel_text_len=53"
+    },
+    {
+      "test": "9. Zoom in/out interaction",
+      "status": "pass",
+      "detail": "initial_zoom~nce, after_zoom_out=?%"
+    },
+    {
+      "test": "10. Accessible list fallback",
+      "status": "pass",
+      "detail": "edge keywords present in list view"
+    },
+    {
+      "test": "11. Workflow state presentation (5 phases, 13 states, current marked)",
+      "status": "pass",
+      "detail": "phases=5, pills=13"
+    },
+    {
+      "test": "12. Audit history (transitions + decisions)",
+      "status": "pass",
+      "detail": "entries=15"
+    },
+    {
+      "test": "13. Switch EN \u2192 AR + RTL layout",
+      "status": "pass",
+      "detail": "html.dir=rtl"
+    },
+    {
+      "test": "14. Mobile RTL (375\u00d7812, AR toggled, no horizontal overflow)",
+      "status": "pass",
+      "detail": "scrollWidth=375 clientWidth=375"
+    },
+    {
+      "test": "15. SVG text NOT mirrored in RTL (regression check for CSS fix)",
+      "status": "pass",
+      "detail": "svg_direction=ltr, text_direction=ltr"
+    }
+  ]
+}

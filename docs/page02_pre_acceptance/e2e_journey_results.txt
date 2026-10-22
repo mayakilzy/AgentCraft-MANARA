@@ -1,0 +1,13 @@
+
+============================================================
+G09 Browser E2E Test Results
+============================================================
+  ✓ Test 1: Homepage loads — title contains MANARA
+  ✓ Test 2: Status banner visible with capabilities
+  ✓ Test 3: Investigation input accepts text (Arabic/English)
+  ✓ Test 4: Submit query — compose returned Investigation ID
+  ✓ Test 5: Coverage and gaps displayed
+  ✓ Test 6: Registry nav item present in sidebar
+  ✓ Test 7: Publishing nav item present in sidebar
+
+7 passed, 0 failed, 0 skipped
