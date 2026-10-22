@@ -1,0 +1,46 @@
+{
+  "mission": "MANARA-UI-PAGE03-MOBILE-FIX-01",
+  "summary": {
+    "total": 7,
+    "passed": 5,
+    "failed": 0,
+    "errors": 2
+  },
+  "results": [
+    {
+      "test": "01_ar_mobile_375x812",
+      "status": "PASS",
+      "detail": "scroll=375 client=375"
+    },
+    {
+      "test": "02_en_mobile_375x812",
+      "status": "ERROR",
+      "detail": "Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:5173/\", waiting until \"networkidle\"\n"
+    },
+    {
+      "test": "03_ar_mobile_390x844",
+      "status": "PASS",
+      "detail": "scroll=390 client=390"
+    },
+    {
+      "test": "04_en_mobile_390x844",
+      "status": "PASS",
+      "detail": "scroll=390 client=390"
+    },
+    {
+      "test": "05_ar_tablet_768x1024",
+      "status": "ERROR",
+      "detail": "Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:5173/\", waiting until \"networkidle\"\n"
+    },
+    {
+      "test": "06_en_desktop_1536x1024",
+      "status": "PASS",
+      "detail": "scroll=1536 client=1536"
+    },
+    {
+      "test": "07_ar_desktop_1536x1024",
+      "status": "PASS",
+      "detail": "scroll=1536 client=1536"
+    }
+  ]
+}

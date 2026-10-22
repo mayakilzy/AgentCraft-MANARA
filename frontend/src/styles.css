@@ -2101,17 +2101,27 @@
 .manara-me-topic-card small { font-size: 10px; color: var(--manara-ink-muted); }
 
 /* === Responsive: tablet === */
-@media (max-width: 1370px) {
-  .manara-me-primary-grid {
-    grid-template-columns: minmax(245px, 0.85fr) minmax(350px, 1.2fr) minmax(270px, 0.9fr);
-  }
-}
+/* MANARA-UI-PAGE03-MOBILE-FIX-01: REMOVED duplicate @media (max-width: 1370px)
+   that was overriding the @media (max-width: 780px) single-column mobile layout.
+   The first block (lines 1820-1833) already handles all breakpoints correctly
+   in proper order: 1150px → 2-column, 780px → 1-column. */
 
 /* === Responsive: mobile === */
 @media (max-width: 780px) {
+  /* MANARA-UI-PAGE03-MOBILE-FIX-01: force genuine single-column layout.
+     Use !important to guarantee no later rule can override this. */
+  .manara-me-primary-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .manara-me-bottom-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
   .manara-me-graph-area { height: 450px; }
   .manara-me-title { font-size: 32px; }
   .manara-me-subtitle { font-size: 13px; }
-  .manara-me-topics-grid { grid-template-columns: repeat(2, 1fr); }
+  .manara-me-topics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .manara-me-timeline-events { grid-template-columns: 1fr; }
+  /* Ensure all panels can shrink to viewport width */
+  .manara-me-panel { min-width: 0; overflow: hidden; }
+  .manara-me-evidence-list { max-height: 350px; }
 }
