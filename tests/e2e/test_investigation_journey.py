@@ -76,16 +76,26 @@ def main() -> int:
             results.append(f"✗ Test 3: Input test failed: {e}")
 
         # ── Test 4: Submit query and get mold ───────────────────────────────
+        # MANARA-UI-PAGE02-PRE-ACCEPTANCE-01: fix legacy selector.
+        # The current UI uses 'Start Investigation' (EN) / 'بدء التحقيق' (AR),
+        # NOT 'Compose' / 'حلّل'. After compose succeeds, the ComposeResultCard
+        # renders the Investigation ID (per i18n key 'home.investigationId').
         try:
-            # Click the compose button
-            button = page.query_selector("button:has-text('Compose')")
+            button = page.query_selector("button:has-text('Start Investigation')")
             if button is None:
-                button = page.query_selector("button:has-text('حلّل')")
-            assert button is not None
+                button = page.query_selector("button:has-text('بدء التحقيق')")
+            assert button is not None, "Submit button not found (expected 'Start Investigation' or 'بدء التحقيق')"
             button.click()
-            # Wait for response (up to 30 seconds — model loading)
-            page.wait_for_selector("text=Analysis Result", timeout=30000)
-            results.append("✓ Test 4: Mold composition returned — Analysis Result visible")
+            # Wait for compose response — the ComposeResultCard renders
+            # 'Investigation ID' (or Arabic equivalent 'معرّف التحقيق')
+            # when compose succeeds. Allow 30s for model loading on cold start.
+            try:
+                page.wait_for_selector("text=Investigation ID", timeout=30000)
+            except Exception:
+                # Fall back to Arabic label (if language was toggled) or
+                # the investigation_id pattern that the ComposeResultCard shows
+                page.wait_for_selector("text=معرّف التحقيق", timeout=5000)
+            results.append("✓ Test 4: Submit query — compose returned Investigation ID")
         except Exception as e:
             results.append(f"✗ Test 4: Submit query failed: {e}")
 
@@ -101,35 +111,34 @@ def main() -> int:
         except Exception as e:
             results.append(f"✗ Test 5: Coverage check failed: {e}")
 
-        # ── Test 6: Navigation works ─────────────────────────────────────────
+        # ── Test 6: Registry nav item present ────────────────────────────────
+        # MANARA-UI-PAGE02-PRE-ACCEPTANCE-01: fix selector.
+        # The Sidebar renders nav items as <a> elements (not <button>) per
+        # the Page 01 closure work. The 'Registry' nav item is present but
+        # locked (not clickable yet — onNavigate only handles home/workspace/memory).
         try:
-            # Click on Registry tab
-            registry_tab = page.query_selector("button:has-text('Registry')")
-            if registry_tab:
-                registry_tab.click()
-                page.wait_for_timeout(1000)
-                body = page.text_content("body")
-                assert "capability" in body.lower() or "قدرة" in body
-                results.append("✓ Test 6: Navigation to Registry works")
+            # Look for <a> element containing 'Registry' (or Arabic 'سجل القدرات')
+            registry_link = page.query_selector("a:has-text('Capability Registry')")
+            if registry_link is None:
+                registry_link = page.query_selector("a:has-text('سجل القدرات')")
+            if registry_link is not None:
+                results.append("✓ Test 6: Registry nav item present in sidebar")
             else:
-                results.append("△ Test 6: Registry tab not found")
+                results.append("△ Test 6: Registry nav item not found")
         except Exception as e:
-            results.append(f"✗ Test 6: Navigation test failed: {e}")
+            results.append(f"✗ Test 6: Registry nav check failed: {e}")
 
-        # ── Test 7: Publishing tab ───────────────────────────────────────────
+        # ── Test 7: Publishing nav item present ────────────────────────────────
         try:
-            pub_tab = page.query_selector("button:has-text('Publishing')")
-            if pub_tab:
-                pub_tab.click()
-                page.wait_for_timeout(1000)
-                body = page.text_content("body")
-                # Should show either publications or empty-state message
-                assert "publication" in body.lower() or "منشور" in body or "لا توجد" in body
-                results.append("✓ Test 7: Publishing tab accessible")
+            pub_link = page.query_selector("a:has-text('Publishing Studio')")
+            if pub_link is None:
+                pub_link = page.query_selector("a:has-text('استوديو النشر')")
+            if pub_link is not None:
+                results.append("✓ Test 7: Publishing nav item present in sidebar")
             else:
-                results.append("△ Test 7: Publishing tab not found")
+                results.append("△ Test 7: Publishing nav item not found")
         except Exception as e:
-            results.append(f"✗ Test 7: Publishing tab test failed: {e}")
+            results.append(f"✗ Test 7: Publishing nav check failed: {e}")
 
         browser.close()
 

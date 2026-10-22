@@ -4,7 +4,11 @@ import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const apiTarget = env.VITE_API_TARGET || "http://localhost:8000";
+  // MANARA-UI-PAGE02-PRE-ACCEPTANCE-01: use 127.0.0.1 (not localhost) for
+  // the dev proxy target — some dev environments resolve localhost to IPv6
+  // ::1 first, while the dev backend only listens on IPv4. Setting
+  // VITE_API_TARGET overrides this for non-default backend hosts.
+  const apiTarget = env.VITE_API_TARGET || "http://127.0.0.1:8000";
 
   const apiRoutes = [
     "/status",

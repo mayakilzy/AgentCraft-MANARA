@@ -78,3 +78,8 @@ ehthumbs.db
 
 # G03 — local object store snapshots (dev only)
 var/
+
+# MANARA-UI-PAGE02-PRE-ACCEPTANCE-01: dev SQLite databases (NOT production)
+manara_dev*.db
+manara_dev*.db-shm
+manara_dev*.db-wal

@@ -92,9 +92,22 @@ export class ManaraApiError extends Error {
 
 // In Vite, use import.meta.env instead of process.env
 // Call the backend directly to avoid Vite dev server single-threading.
-// Default to 127.0.0.1 (not localhost) because some dev environments resolve
-// localhost to IPv6 ::1 first, while the dev backend only listens on IPv4.
-// Setting VITE_API_BASE explicitly overrides this for production.
+//
+// DEPLOYMENT CONFIGURATION (MANARA-UI-PAGE02-PRE-ACCEPTANCE-01):
+// - Local dev (Vite dev server on :5173):
+//     Set VITE_API_BASE="" (empty) so all fetches are same-origin /api/*,
+//     which Vite proxies to the backend (see vite.config.ts proxyConfig).
+//     OR set VITE_API_BASE=http://127.0.0.1:8000 to call the backend directly
+//     (default fallback below — chosen because some dev environments resolve
+//     `localhost` to IPv6 ::1 first while the backend listens on IPv4 only).
+//
+// - Production deploy (vite preview or static host):
+//     Set VITE_API_BASE=https://api.your-domain.com at build time.
+//     OR run a reverse proxy (nginx/caddy) that routes /mold-factory,
+//     /memory, /foundry, /status to the backend, and leave VITE_API_BASE=""
+//     so fetches are same-origin.
+//
+// Setting VITE_API_BASE explicitly at build time always overrides the default.
 const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) || 'http://127.0.0.1:8000';
 
 // Fixtures are ONLY enabled when VITE_USE_FIXTURES=true is set explicitly.
