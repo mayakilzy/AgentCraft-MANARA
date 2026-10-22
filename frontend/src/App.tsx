@@ -153,7 +153,10 @@ function ManaraShell() {
 
             {page === 'workspace' && investigationId && (
               <div className="mx-auto w-full max-w-6xl px-4 py-8 md:px-8 md:py-12">
-                <InvestigationWorkspace investigationId={investigationId} />
+                <InvestigationWorkspace
+                  investigationId={investigationId}
+                  onInvestigationChange={setInvestigationId}
+                />
               </div>
             )}
 

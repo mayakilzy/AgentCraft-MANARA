@@ -43,8 +43,9 @@ import {
 } from './api-client';
 
 // API_BASE for direct fetch calls (workflow initialization)
-// Default matches the value in api-client.ts
-const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) || 'http://localhost:8000';
+// Default matches the value in api-client.ts (127.0.0.1, not localhost,
+// to avoid IPv6-first resolution issues in dev environments).
+const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) || 'http://127.0.0.1:8000';
 import {
   Loader2, AlertCircle, ChevronRight, Network, FileText,
   RefreshCw, List, Maximize2, Plus, Minus,

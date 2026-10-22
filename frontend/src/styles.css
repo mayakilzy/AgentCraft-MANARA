@@ -1238,6 +1238,12 @@
 .manara-observatory-svg {
   background: rgba(0, 19, 35, 0.5);
   border-radius: 8px;
+  /* SVG text must always render LTR — prevents RTL mirroring of node IDs and edge labels */
+  direction: ltr;
+}
+.manara-observatory-svg text {
+  direction: ltr;
+  unicode-bidi: plaintext;
 }
 .manara-observatory-empty {
   text-align: center;
