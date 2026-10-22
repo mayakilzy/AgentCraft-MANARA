@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "Based on the provided image of the **MANARA Investigation Workspace** (Arabic RTL version), here is the verification report:\n\n### 1. Layout Mirroring (RTL)\n**Status: Correct.**\n*   The layout successfully implements Right-to-Left (RTL) logic.\n*   The **Main Navigation Sidebar** is positioned on the **right** side of the screen.\n*   The **Content Area** flows from right to left.\n*   Text alignment within cards and headers is correctly set to `text-align: right` or `start`.\n\n### 2. Component Positioning\n**Status: Correct.**\n*   **Header:** The \"MANARA\" logo and branding are on the far right. Navigation tabs (\"الرصد\", \"الاستوديو\") are to the left of the logo, following standard Arabic reading order.\n*   **Sidebar:** The vertical navigation menu is anchored to the right edge. Icons are placed to the **left** of the Arabic text labels (e.g., Home icon is left of \"الرئيسية\"), which is the correct visual hierarchy for RTL interfaces.\n*   **Panels:**\n    *   The **\"Investigation Info\" (معلومات التحقيق)** panel is on the **Left** side of the main content area (acting as a secondary sidebar).\n    *   The **\"Investigation Status\" (حالة التحقيق)** and **\"Knowledge Graph\"** panels occupy the center.\n    *   This creates a logical [Sidebar (R) -- Content (C) -- Info Panel (L)] structure, which is appropriate for this dashboard density.\n\n### 3. Typography & Font Rendering\n**Status: Excellent.**\n*   **Font Family:** The text is clearly rendering in **IBM Plex Sans Arabic** (or a very similar high-quality Naskh-style Arabic font). The letterforms are distinct, professional, and legible.\n*   **No Tofu/Squares:** There are no missing character glyphs (tofu blocks). All Arabic characters, including complex ligatures and diacritics (tashkeel), are rendering perfectly.\n*   **Text Direction:** The Arabic text reads naturally from right to left.\n\n### 4. SVG & Visual Elements\n**Status: Correct.**\n*   **Knowledge Graph:** The central dark-themed \"Knowledge Graph\" section displays correctly.\n    *   **Nodes:** The circular nodes (Question, Needs, Coverage, etc.) are **not mirrored**. They maintain their circular integrity.\n    *   **Text inside SVG:** The labels above the nodes (e.g., \"Question\", \"Synthesis\") appear to be English or properly isolated directional runs; they are not distorted or reversed.\n    *   **Connections:** The curved paths connecting the nodes flow logically from right (start) to left (end), matching the process flow.\n*   **Icons:** All UI icons (sidebar icons, status indicators) are rendered correctly without horizontal flipping artifacts.\n\n### 5. Layout Health & Overflow\n**Status: Good.**\n*   **Overflow:** There is **no visible horizontal overflow**. The content is contained within the viewport width. Scrollbars (if any) would likely be on the left, though none are visibly cutting off content here.\n*   **Spacing:** Margins and padding appear consistent. The gap between the right sidebar and the main content is preserved.\n*   **Alignment:** The \"Process Steps\" stepper (1 to 5) is centered correctly within its container. The tags below the main title wrap correctly to the left.\n\n### Summary\nThe implementation is a **high-fidelity, correct RTL adaptation**. It avoids common pitfalls like simply mirroring the CSS `transform: scaleX(-1)` (which would flip icons and images). Instead, it uses proper logical properties (`dir=\"rtl\"`), ensuring text flows correctly while keeping graphical assets (like the graph nodes and icons) oriented naturally.\n\n**Verdict:** **PASS** - The layout is production-ready regarding RTL compliance.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1792649069,
+  "id": "2026102214041082d54a255ae04f11",
+  "model": "glm-5v-turbo",
+  "object": "chat.completion",
+  "request_id": "2026102214041082d54a255ae04f11",
+  "usage": {
+    "completion_tokens": 817,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 5809,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "total_tokens": 6626
+  }
+}
