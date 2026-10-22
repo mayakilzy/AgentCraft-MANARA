@@ -108,9 +108,10 @@ function ManaraShell() {
         />
 
         <main id="main-content" className="flex-1 manara-scroll overflow-y-auto">
-          <div className="mx-auto w-full max-w-6xl px-4 py-8 md:px-8 md:py-12">
             {page === 'home' && (
               <>
+                {/* MANARA-UI-PAGE01-SOURCE-INTEGRATION-01: Hero renders full-width
+                    per the HTML/CSS source reference (no max-w container wrapping it) */}
                 <Hero
                   query={query}
                   onQueryChange={setQuery}
@@ -121,6 +122,7 @@ function ManaraShell() {
                   isValid={isValid}
                   overLimit={overLimit}
                 />
+                <div className="mx-auto w-full max-w-6xl px-4 md:px-8 pb-8">
                 <ComposeResultCard
                   ref={resultRef}
                   submitting={submitting}
@@ -139,19 +141,24 @@ function ManaraShell() {
                     </button>
                   </div>
                 )}
+                </div>
               </>
             )}
 
             {page === 'workspace' && investigationId && (
-              <InvestigationWorkspace investigationId={investigationId} />
+              <div className="mx-auto w-full max-w-6xl px-4 py-8 md:px-8 md:py-12">
+                <InvestigationWorkspace investigationId={investigationId} />
+              </div>
             )}
 
             {page === 'memory' && investigationId && (
-              <MemoryExplorer investigationId={investigationId} />
+              <div className="mx-auto w-full max-w-6xl px-4 py-8 md:px-8 md:py-12">
+                <MemoryExplorer investigationId={investigationId} />
+              </div>
             )}
 
             {page !== 'home' && !investigationId && (
-              <div className="text-center py-20">
+              <div className="mx-auto w-full max-w-6xl px-4 py-8 md:px-8 md:py-12 text-center py-20">
                 <p className="text-[var(--manara-ink-muted)]">
                   Submit a research question on the Home page first to start an investigation.
                 </p>
@@ -163,7 +170,6 @@ function ManaraShell() {
                 </button>
               </div>
             )}
-          </div>
         </main>
       </div>
     </div>
