@@ -2262,6 +2262,12 @@
   .manara-cr-panels { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .manara-cr-ecosystem { grid-column: 1 / -1; }
   .manara-cr-bottom-panels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* MANARA-UI-PAGE04-PRE-ACCEPTANCE-01: tablet overflow fix.
+     At 768px, the 4-column metadata grid and detail tabs overflow.
+     Reduce to 2 columns and ensure all panels can shrink. */
+  .manara-cr-panel { min-width: 0; overflow: hidden; }
+  .manara-cr-metadata { grid-template-columns: repeat(2, 1fr); }
+  .manara-cr-cap-copy strong { white-space: normal; }
 }
 @media (max-width: 760px) {
   .manara-cr-panels { grid-template-columns: minmax(0, 1fr) !important; }
@@ -2275,4 +2281,24 @@
   .manara-cr-filters { gap: 4px; }
   .manara-cr-filters select { font-size: 10px; }
   .manara-cr-metadata { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   MANARA-UI-PAGE04-PRE-ACCEPTANCE-01: Header tablet overflow fix.
+   The Header's right-side cluster (status + bell + language switcher)
+   has `shrink-0` which prevents shrinking at tablet width (768px),
+   causing 41px horizontal overflow. This shared fix allows the cluster
+   to shrink at ≤1024px, preventing overflow on ALL pages.
+   ============================================================ */
+@media (max-width: 1024px) {
+  header.sticky > div:last-child {
+    flex-shrink: 1 !important;
+    min-width: 0 !important;
+    gap: 0.5rem !important;
+  }
+  /* Hide the bell icon at tablet (non-essential decorative element) */
+  header button[aria-label*="Notifications"],
+  header button[aria-label*="الإشعارات"] {
+    display: none !important;
+  }
 }
