@@ -92,7 +92,7 @@ interface SidebarProps {
   mobileOpen: boolean;
   onCloseMobile: () => void;
   activePage?: string;
-  onNavigate?: (page: 'home' | 'workspace' | 'memory') => void;
+  onNavigate?: (page: 'home' | 'workspace' | 'memory' | 'registry') => void;
   workspaceEnabled?: boolean;
 }
 
@@ -159,7 +159,7 @@ export function Sidebar({
               <ul className="space-y-0.5">
                 {items.map((item) => {
                   const Icon = item.icon;
-                  const isClickable = item.key === 'home' || (workspaceEnabled && (item.key === 'workspace' || item.key === 'memory'));
+                  const isClickable = item.key === 'home' || item.key === 'registry' || (workspaceEnabled && (item.key === 'workspace' || item.key === 'memory'));
                   const isActive = activePage === item.key;
                   const isLocked = !isClickable;
                   return (
@@ -168,7 +168,7 @@ export function Sidebar({
                         href="#"
                         onClick={(e) => {
                           e.preventDefault();
-                          if (isClickable && onNavigate && (item.key === 'home' || item.key === 'workspace' || item.key === 'memory')) {
+                          if (isClickable && onNavigate && (item.key === 'home' || item.key === 'workspace' || item.key === 'memory' || item.key === 'registry')) {
                             onNavigate(item.key);
                           }
                           onCloseMobile();

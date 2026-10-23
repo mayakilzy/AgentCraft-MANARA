@@ -6,9 +6,10 @@ import { Hero } from './components/manara/Hero';
 import { ComposeResultCard } from './components/manara/ComposeResult';
 import { InvestigationWorkspace } from './components/manara/InvestigationWorkspace';
 import { MemoryExplorer } from './components/manara/MemoryExplorer';
+import { CapabilityRegistry } from './components/manara/CapabilityRegistry';
 import { manaraApi, ManaraApiError, type ComposeResponse } from './components/manara/api-client';
 
-type Page = 'home' | 'workspace' | 'memory';
+type Page = 'home' | 'workspace' | 'memory' | 'registry';
 
 function ManaraShell() {
   const { t } = useLanguage();
@@ -85,7 +86,8 @@ function ManaraShell() {
   };
 
   const headerTitle = page === 'home' ? t('nav.home') :
-    page === 'workspace' ? t('nav.workspace') : t('nav.memory');
+    page === 'workspace' ? t('nav.workspace') :
+    page === 'registry' ? t('nav.registry') : t('nav.memory');
 
   return (
     <div className="flex min-h-screen bg-[var(--manara-canvas)]">
@@ -166,6 +168,12 @@ function ManaraShell() {
                   investigationId={investigationId}
                   onInvestigationChange={setInvestigationId}
                 />
+              </div>
+            )}
+
+            {page === 'registry' && (
+              <div className="mx-auto w-full max-w-[1700px] px-4 py-6 md:px-6 md:py-8">
+                <CapabilityRegistry />
               </div>
             )}
 

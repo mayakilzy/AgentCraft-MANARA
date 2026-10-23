@@ -2125,3 +2125,154 @@
   .manara-me-panel { min-width: 0; overflow: hidden; }
   .manara-me-evidence-list { max-height: 350px; }
 }
+
+/* ============================================================
+   MANARA Page 04 — Capability Registry (OWNER-APPROVED SOURCE v1)
+   3-panel layout: Registry list, details, ecosystem graph + bottom panels.
+   ============================================================ */
+
+.manara-cr { display: flex; flex-direction: column; gap: 10px; }
+.manara-cr-heading { padding: 0 12px 12px; }
+.manara-cr-overline { font-size: 10px; color: var(--manara-teal); letter-spacing: 2px; font-weight: 700; margin-bottom: 5px; }
+.manara-cr-title { font: 600 clamp(20px, 2vw, 27px)/1.2 var(--font-source-serif), Georgia, serif; margin: 0; color: var(--manara-ink); }
+[dir="rtl"] .manara-cr-title { font-family: var(--font-arabic); font-weight: 700; }
+.manara-cr-subtitle { font-size: 12px; color: var(--manara-ink-muted); margin: 4px 0 0; }
+
+/* 3-column grid */
+.manara-cr-panels { display: grid; grid-template-columns: minmax(280px, 0.9fr) minmax(340px, 1.1fr) minmax(280px, 0.9fr); gap: 10px; align-items: stretch; }
+
+/* Panels */
+.manara-cr-panel { background: white; border: 1px solid #e1eaf6; border-radius: 13px; box-shadow: 0 6px 22px rgba(82, 118, 160, 0.04); min-width: 0; overflow: hidden; }
+
+/* Registry panel */
+.manara-cr-registry { padding: 14px; min-height: 500px; }
+.manara-cr-registry-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
+.manara-cr-registry-h2 { font-size: 16px; margin: 0 0 4px; font-weight: 700; }
+
+/* Search */
+.manara-cr-search-row { display: flex; align-items: center; gap: 8px; height: 38px; border: 1px solid #d8e5f4; border-radius: 7px; padding: 0 12px; margin-bottom: 10px; }
+.manara-cr-search-row input { width: 100%; border: 0; background: none; font-size: 12px; outline: none; color: var(--manara-ink); min-width: 0; }
+
+/* Filters */
+.manara-cr-filters { display: flex; gap: 7px; margin-bottom: 12px; }
+.manara-cr-filters select { flex: 1; min-width: 0; border: 1px solid #dce8f5; background: #fbfdff; border-radius: 7px; color: #40628e; font-size: 11px; height: 33px; padding: 0 4px; }
+
+/* Capability list */
+.manara-cr-cap-list { display: grid; gap: 8px; max-height: 500px; overflow-y: auto; }
+.manara-cr-cap-list { scrollbar-width: thin; scrollbar-color: #e1eaf6 transparent; }
+.manara-cr-cap-list::-webkit-scrollbar { width: 5px; }
+.manara-cr-cap-list::-webkit-scrollbar-thumb { background: #e1eaf6; border-radius: 3px; }
+
+/* Capability row */
+.manara-cr-cap-row { display: flex; align-items: center; gap: 10px; padding: 10px 8px; border-radius: 10px; background: #f9fbfe; border: 1px solid #eff3fa; text-align: start; min-width: 0; color: var(--manara-ink); min-height: 65px; cursor: pointer; transition: border-color 0.15s; }
+[dir="rtl"] .manara-cr-cap-row { text-align: right; }
+.manara-cr-cap-row.selected { background: #edf6ff; border-color: #b8d8ff; box-shadow: inset 3px 0 #157df9; }
+[dir="rtl"] .manara-cr-cap-row.selected { box-shadow: inset -3px 0 #157df9; }
+.manara-cr-cap-row:hover { border-color: #8cbaff; }
+
+/* Capability icon */
+.manara-cr-cap-icon { display: grid; place-items: center; flex: 0 0 40px; height: 40px; border-radius: 10px; background: linear-gradient(145deg, #e4f3ff, #d9ebff); color: #0a75e8; }
+
+/* Capability copy */
+.manara-cr-cap-copy { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.manara-cr-cap-copy strong { font-size: 12px; line-height: 1.4; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.manara-cr-cap-copy small { font-size: 10px; color: #6882a7; line-height: 1.4; }
+
+/* Badge */
+.manara-cr-badge { border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; font-size: 9px; font-weight: 700; padding: 4px 8px; }
+.manara-cr-badge.candidate { color: #9c7100; background: #fff0c7; }
+.manara-cr-badge.approved { color: #078849; background: #d8fae7; }
+.manara-cr-badge.rejected { color: #c43f51; background: #ffeaeb; }
+.manara-cr-cap-row .manara-cr-badge { align-self: flex-start; padding: 4px 7px; }
+
+/* Detail panel */
+.manara-cr-detail { display: flex; flex-direction: column; min-height: 500px; }
+.manara-cr-detail-top { padding: 18px 16px; border-bottom: 1px solid #e1eaf6; }
+.manara-cr-detail-header { display: flex; align-items: flex-start; gap: 12px; }
+.manara-cr-detail-icon { flex: 0 0 47px; height: 47px; }
+.manara-cr-detail-h2 { font-size: 17px; line-height: 1.4; margin: 0 0 10px; font-weight: 700; }
+
+/* Pills */
+.manara-cr-pills { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.manara-cr-pill { font-size: 10px; padding: 4px 8px; border-radius: 7px; background: #eef5ff; color: #126ad5; }
+
+/* Description */
+.manara-cr-description { padding: 16px; border-bottom: 1px solid #e1eaf6; }
+.manara-cr-description p { font-size: 12px; line-height: 1.8; color: #5d78a0; margin: 0; }
+
+/* Metadata grid */
+.manara-cr-metadata { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid #e1eaf6; padding: 16px 4px; gap: 0; }
+.manara-cr-metadata > div { padding: 0 8px; border-inline-end: 1px solid #edf2f9; min-width: 0; }
+.manara-cr-metadata > div:last-child { border: none; }
+.manara-cr-metadata dt { font-size: 9px; color: #708bae; margin-bottom: 6px; }
+.manara-cr-metadata dd { font-size: 11px; font-weight: 700; margin: 0; overflow-wrap: anywhere; }
+
+/* Detail tabs */
+.manara-cr-detail-tabs { display: grid; grid-template-columns: repeat(4, 1fr); padding: 8px 10px 0; gap: 2px; }
+.manara-cr-detail-tabs button { border: 0; background: #f6f9fc; color: #6981a1; font-size: 10px; padding: 10px 2px; border-bottom: 3px solid transparent; cursor: pointer; line-height: 1.4; }
+.manara-cr-detail-tabs button.current { background: white; color: #086ae5; border-color: #0577f2; font-weight: 700; }
+
+/* Tab content */
+.manara-cr-tab-content { padding: 18px 14px; min-height: 200px; }
+.manara-cr-section-title { margin: 0 0 8px; font-size: 12px; font-weight: 600; }
+
+/* Checklist */
+.manara-cr-checklist { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.manara-cr-checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 11px; color: #58739a; line-height: 1.5; }
+.manara-cr-checklist li span { font-weight: 700; display: grid; place-items: center; border-radius: 50%; background: #0ea662; color: #fff; flex: 0 0 16px; height: 16px; font-size: 9px; }
+
+/* Detail empty */
+.manara-cr-detail-empty { padding: 40px 20px; font-size: 13px; color: var(--manara-ink-muted); text-align: center; min-height: 300px; display: grid; place-items: center; }
+
+/* Ecosystem panel */
+.manara-cr-ecosystem { display: flex; flex-direction: column; min-height: 500px; padding: 12px; }
+.manara-cr-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.manara-cr-ecosystem-h2 { font-size: 14px; margin: 0; font-weight: 700; }
+.manara-cr-teal { color: var(--manara-teal); margin-right: 5px; }
+[dir="rtl"] .manara-cr-teal { margin-right: 0; margin-left: 5px; }
+
+/* Graph */
+.manara-cr-graph-frame { flex: 1; min-height: 380px; display: grid; place-items: center; overflow: hidden; }
+.manara-cr-graph-svg { display: block; width: 100%; max-height: 460px; height: 100%; direction: ltr; }
+.manara-cr-graph-svg text { direction: ltr; unicode-bidi: plaintext; }
+.manara-cr-graph-empty { text-align: center; color: var(--manara-ink-muted); }
+
+/* Graph controls */
+.manara-cr-graph-controls { display: flex; align-items: center; justify-content: flex-end; gap: 6px; padding: 8px 0; }
+.manara-cr-graph-controls button { border: 1px solid #dce8f7; background: white; border-radius: 6px; padding: 6px 10px; color: #4671a7; font-size: 11px; cursor: pointer; display: grid; place-items: center; }
+.manara-cr-graph-controls button:hover { background: #f0f7ff; }
+.manara-cr-icon-btn { border: 1px solid #dce8f7; background: white; border-radius: 6px; padding: 8px; color: #4671a7; cursor: pointer; display: grid; place-items: center; }
+
+/* Bottom panels */
+.manara-cr-bottom-panels { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; margin-top: 10px; }
+.manara-cr-bottom-card { background: white; border: 1px solid #e1eaf6; border-radius: 13px; min-height: 160px; padding: 12px; box-shadow: 0 6px 22px rgba(82, 118, 160, 0.04); }
+.manara-cr-bottom-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.manara-cr-bottom-head h3 { margin: 0; font-size: 12px; font-weight: 600; }
+.manara-cr-bottom-list { display: grid; gap: 6px; }
+.manara-cr-mini-row { display: flex; align-items: center; gap: 8px; min-height: 36px; border: 1px solid #edf1fa; border-radius: 7px; padding: 6px; font-size: 10px; cursor: pointer; }
+.manara-cr-mini-icon { display: grid; place-items: center; width: 24px; height: 24px; flex: 0 0 24px; border-radius: 5px; background: #e5f2ff; color: #0076e8; font-size: 12px; }
+.manara-cr-mini-main { flex: 1; min-width: 0; font-weight: 600; line-height: 1.4; }
+.manara-cr-mini-main small { display: block; color: #8397b0; font-weight: 400; margin-top: 2px; font-size: 9px; }
+
+/* === Responsive (ordered large to small to avoid precedence bugs) === */
+@media (max-width: 1400px) {
+  .manara-cr-panels { grid-template-columns: minmax(250px, 1fr) minmax(300px, 1fr) minmax(250px, 0.9fr); }
+}
+@media (max-width: 1120px) {
+  .manara-cr-panels { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .manara-cr-ecosystem { grid-column: 1 / -1; }
+  .manara-cr-bottom-panels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .manara-cr-panels { grid-template-columns: minmax(0, 1fr) !important; }
+  .manara-cr-bottom-panels { grid-template-columns: minmax(0, 1fr) !important; }
+  .manara-cr-metadata { grid-template-columns: repeat(2, 1fr); }
+  .manara-cr-cap-list { max-height: 300px; }
+  .manara-cr-graph-frame { min-height: 320px; }
+  .manara-cr-title { font-size: 20px; }
+}
+@media (max-width: 390px) {
+  .manara-cr-filters { gap: 4px; }
+  .manara-cr-filters select { font-size: 10px; }
+  .manara-cr-metadata { grid-template-columns: 1fr; }
+}
